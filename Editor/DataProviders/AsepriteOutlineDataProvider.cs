@@ -8,7 +8,7 @@ namespace AsepriteImporter.DataProviders
 {
     public class AsepriteOutlineDataProvider : ISpriteOutlineDataProvider
     {
-        private readonly AseFileImporter importer;
+        readonly AseFileImporter importer;
 
         public AsepriteOutlineDataProvider(AseFileImporter importer)
         {

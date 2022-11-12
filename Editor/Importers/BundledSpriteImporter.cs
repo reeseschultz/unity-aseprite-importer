@@ -23,13 +23,13 @@ namespace AsepriteImporter.Importers
     {
         [SerializeField] public Texture2D atlas;
 
-        [SerializeField] private Texture2D thumbnail;
+        [SerializeField] Texture2D thumbnail;
 
-        [SerializeField] private int frameCount;
-        [SerializeField] private int textureWidth;
-        [SerializeField] private int textureHeight;
+        [SerializeField] int frameCount;
+        [SerializeField] int textureWidth;
+        [SerializeField] int textureHeight;
 
-        [SerializeField] private Sprite[] sprites;
+        [SerializeField] Sprite[] sprites;
         
         public Texture2D Thumbnail => thumbnail;
         public override Sprite[] Sprites => sprites;
@@ -39,7 +39,7 @@ namespace AsepriteImporter.Importers
         public override float pixelsPerUnit => TextureImportSettings.spritePixelsPerUnit;
         public override UnityEngine.Object targetObject => Importer;
         
-        private string name;
+        string name;
 
         public BundledSpriteImporter(AseFileImporter importer) : base(importer)
         {
@@ -129,7 +129,7 @@ namespace AsepriteImporter.Importers
             };
         }
 
-        private void GenerateTexture(string assetPath)
+        void GenerateTexture(string assetPath)
         {
             SourceTextureInformation textureInformation = new SourceTextureInformation()
             {
@@ -200,7 +200,7 @@ namespace AsepriteImporter.Importers
             }
         }
 
-        private void ProcessAnimationSettings()
+        void ProcessAnimationSettings()
         {
             AnimationImporter animationImporter = new AnimationImporter(AsepriteFile);
 
@@ -233,7 +233,7 @@ namespace AsepriteImporter.Importers
             }
         }
 
-        private void ApplySpritesToAnimation()
+        void ApplySpritesToAnimation()
         {
             if (sprites.Length != frameCount)
                 return;
@@ -269,7 +269,7 @@ namespace AsepriteImporter.Importers
 
 
 
-        private string GetFileName(string assetPath)
+        string GetFileName(string assetPath)
         {
             string[] parts = assetPath.Split('/');
             string filename = parts[parts.Length - 1];
@@ -277,7 +277,7 @@ namespace AsepriteImporter.Importers
             return filename.Substring(0, filename.LastIndexOf('.'));
         }
 
-        private string GetPath(string assetPath)
+        string GetPath(string assetPath)
         {
             string[] parts = assetPath.Split('/');
             string filename = parts[parts.Length - 1];
@@ -285,7 +285,7 @@ namespace AsepriteImporter.Importers
             return assetPath.Replace(filename, "");
         }
 
-        private static AseFile ReadAseFile(string assetPath)
+        static AseFile ReadAseFile(string assetPath)
         {
             FileStream fileStream = new FileStream(assetPath, FileMode.Open, FileAccess.Read);
             AseFile aseFile = new AseFile(fileStream);
@@ -345,7 +345,7 @@ namespace AsepriteImporter.Importers
             EditorApplication.RepaintProjectWindow();
         }
 
-        private static SpriteImportData[] ConvertAseFileSpriteImportDataToUnity(AseFileSpriteImportData[] spriteImportData)
+        static SpriteImportData[] ConvertAseFileSpriteImportDataToUnity(AseFileSpriteImportData[] spriteImportData)
         {
             SpriteImportData[] importData = new SpriteImportData[spriteImportData.Length];
 

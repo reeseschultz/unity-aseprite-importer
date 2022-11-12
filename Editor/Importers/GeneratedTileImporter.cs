@@ -8,12 +8,12 @@ using UnityEngine;
 
 namespace AsepriteImporter {
     public class GeneratedTileImporter : SpriteImporter {
-        private int padding = 1;
-        private Vector2Int size;
-        private string fileName;
-        private string filePath;
-        private int updateLimit;
-        private Texture2D atlas;
+        int padding = 1;
+        Vector2Int size;
+        string fileName;
+        string filePath;
+        int updateLimit;
+        Texture2D atlas;
 
         public GeneratedTileImporter(AseFileImporter importer) : base(importer)
         {
@@ -32,7 +32,7 @@ namespace AsepriteImporter {
             return GenerateSprites(filePath, size);
         }
 
-        private void BuildAtlas(string acePath, Texture2D sprite) {
+        void BuildAtlas(string acePath, Texture2D sprite) {
             fileName= Path.GetFileNameWithoutExtension(acePath);
             var directoryName = Path.GetDirectoryName(acePath) + "/" + fileName;
             if (!AssetDatabase.IsValidFolder(directoryName)) {
@@ -51,7 +51,7 @@ namespace AsepriteImporter {
             }
         }
 
-        private void GenerateAtlas(Texture2D sprite) {
+        void GenerateAtlas(Texture2D sprite) {
             var spriteSizeW = Settings.tileSize.x + padding * 2;
             var spriteSizeH = Settings.tileSize.y + padding * 2;
             var cols = sprite.width / Settings.tileSize.x;
@@ -76,7 +76,7 @@ namespace AsepriteImporter {
             }
         }
 
-        private Color[] GetPixels(Texture2D sprite, RectInt from) {
+        Color[] GetPixels(Texture2D sprite, RectInt from) {
             var res = sprite.GetPixels(from.x, from.y, from.width, from.height);
             if (Settings.transparencyMode == TransparencyMode.Mask) {
                 for (int index = 0; index < res.Length; index++) {
@@ -91,7 +91,7 @@ namespace AsepriteImporter {
             return res;
         }
 
-        private Color GetPixel(Texture2D sprite, int x, int y) {
+        Color GetPixel(Texture2D sprite, int x, int y) {
             var color = sprite.GetPixel(x, y);
             if (Settings.transparencyMode == TransparencyMode.Mask) {
                 if (color == Settings.transparentColor) {
@@ -102,7 +102,7 @@ namespace AsepriteImporter {
             return color;
         }
 
-        private void CopyColors(Texture2D sprite, Texture2D atlas, RectInt from, RectInt to) {
+        void CopyColors(Texture2D sprite, Texture2D atlas, RectInt from, RectInt to) {
             atlas.SetPixels(to.x, to.y, to.width, to.height, GetPixels(sprite, from));
 
             for (int index = 0; index < padding; index++) {
@@ -133,7 +133,7 @@ namespace AsepriteImporter {
             }
         }
 
-        private bool GenerateSprites(string path, Vector2Int size) {
+        bool GenerateSprites(string path, Vector2Int size) {
             this.size = size;
 
             var fileName = Path.GetFileNameWithoutExtension(path);
@@ -173,7 +173,7 @@ namespace AsepriteImporter {
             return true;
         }
 
-        private List<SpriteMetaData> CreateMetaData(string fileName) {
+        List<SpriteMetaData> CreateMetaData(string fileName) {
             var tileSize = Settings.tileSize;
             var cols = size.x / tileSize.x;
             var rows = size.y / tileSize.y;
@@ -210,7 +210,7 @@ namespace AsepriteImporter {
             return res;
         }
 
-        private string GetRowColTileSpriteName(string fileName, int x, int y, int cols, int rows) {
+        string GetRowColTileSpriteName(string fileName, int x, int y, int cols, int rows) {
             int yHat = y;
             string row = yHat.ToString();
             string col = x.ToString();
@@ -229,7 +229,7 @@ namespace AsepriteImporter {
             return string.Format("{0}_{1}_{2}", fileName, row, col);
         }
 
-        private SerializedProperty GetPhysicsShapeProperty(TextureImporter importer, string spriteName) {
+        SerializedProperty GetPhysicsShapeProperty(TextureImporter importer, string spriteName) {
             SerializedObject serializedImporter = new SerializedObject(importer);
 
             if (importer.spriteImportMode == SpriteImportMode.Multiple) {
@@ -247,7 +247,7 @@ namespace AsepriteImporter {
             return serializedImporter.FindProperty("m_SpriteSheet.m_PhysicsShape");
         }
 
-        private bool IsTileEmpty(Rect tileRect, Texture2D atlas) {
+        bool IsTileEmpty(Rect tileRect, Texture2D atlas) {
             Color[] tilePixels = atlas.GetPixels((int)tileRect.xMin, (int)tileRect.yMin, (int)tileRect.width, (int)tileRect.height);
             for (int i = 0; i < tilePixels.Length; i++) {
                 if (tilePixels[i].a != 0) {

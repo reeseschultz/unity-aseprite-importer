@@ -16,16 +16,16 @@ namespace AsepriteImporter {
     [CustomEditor(typeof(AseFileImporter)), CanEditMultipleObjects]
     public class AseFileImporterEditor : ScriptedImporterEditor
     {
-        private SpriteImporterEditor editor;
-        private AseFileImporter importer;
+        SpriteImporterEditor editor;
+        AseFileImporter importer;
 
-        private int importType;
+        int importType;
         
         protected readonly string[] importTypes = {"Sprite", "Tileset (Grid)"};
 
         internal AseFileImportType ImportType => (AseFileImportType)importType;
 
-        private void ReloadEditor()
+        void ReloadEditor()
         {
             if (target is AseFileImporter fileImporter)
             {

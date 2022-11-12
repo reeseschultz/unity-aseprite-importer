@@ -17,10 +17,10 @@ namespace AsepriteImporter.Editors
         protected const string TextureSettingsPath = "textureImporterSettings.";
         protected const string AnimationSettingsPath = "animationSettings.";
         
-        private AseFileImporterEditor baseEditor;
+        AseFileImporterEditor baseEditor;
         
         protected readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
-        private AseFileImporter importer;
+        AseFileImporter importer;
 
         public AseFileImporter Importer => importer;
         protected AseFileImportType ImportType => baseEditor.ImportType;

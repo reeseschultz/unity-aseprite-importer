@@ -17,10 +17,10 @@ namespace AsepriteImporter
 {
     public abstract class SpriteImporter
     {
-        private const int UPDATE_LIMIT = 300;
+        const int UPDATE_LIMIT = 300;
 
-        private int updates;
-        private AseFileImporter importer;
+        int updates;
+        AseFileImporter importer;
 
         protected AseFileImportSettings Settings => importer.settings;
         protected AseFileTextureImportSettings TextureImportSettings => importer.textureImporterSettings;
@@ -76,7 +76,7 @@ namespace AsepriteImporter
 
         public abstract void OnImport();
 
-        private void OnEditorUpdate()
+        void OnEditorUpdate()
         {
             AssetDatabase.Refresh();
             var done = false;

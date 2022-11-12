@@ -18,7 +18,7 @@ namespace Aseprite
 
         public List<Chunk> Chunks { get; private set; }
         
-        private bool useNewChunkCount = true;
+        bool useNewChunkCount = true;
         
         public uint GetChunkCount()
         {

@@ -34,7 +34,7 @@ namespace AsepriteImporter {
         
         [SerializeField] internal int selectedImporter;
 
-        private List<ImporterVariant> importerVariants = new List<ImporterVariant>();
+        List<ImporterVariant> importerVariants = new List<ImporterVariant>();
 
         public Texture2D Texture => texture;
         public AseFileSpriteImportData[] SpriteImportData => spriteImportData;
@@ -102,7 +102,7 @@ namespace AsepriteImporter {
             CleanUp();
         }
 
-        private void CleanUp()
+        void CleanUp()
         {
             bool clearSprites = CurrentImporter.Sprites == null;
             
@@ -122,13 +122,13 @@ namespace AsepriteImporter {
             }
         }
 
-        private string GetFileName(string assetPath) {
+        string GetFileName(string assetPath) {
             var parts = assetPath.Split('/');
             var filename = parts[parts.Length - 1];
             return filename.Substring(0, filename.LastIndexOf('.'));
         }
      
-        private static AseFile ReadAseFile(string assetPath) {
+        static AseFile ReadAseFile(string assetPath) {
             var fileStream = new FileStream(assetPath, FileMode.Open, FileAccess.Read);
             var aseFile = new AseFile(fileStream);
             fileStream.Close();
@@ -139,8 +139,8 @@ namespace AsepriteImporter {
         
         #region ISpriteEditorDataProvider implementation
 
-        private AsepriteTextureDataProvider textureDataProvider;
-        private AsepriteOutlineDataProvider outlineDataProvider;
+        AsepriteTextureDataProvider textureDataProvider;
+        AsepriteOutlineDataProvider outlineDataProvider;
         
         
         public SpriteRect[] GetSpriteRects()
@@ -215,7 +215,7 @@ namespace AsepriteImporter {
         #endregion
         
         
-        private GUID ConvertStringToGUID(string guidString)
+        GUID ConvertStringToGUID(string guidString)
         {
             if (!GUID.TryParse(guidString, out GUID guid))
             {

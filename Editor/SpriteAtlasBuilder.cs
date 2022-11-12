@@ -9,8 +9,8 @@ namespace AsepriteImporter
 {
     public class SpriteAtlasBuilder
     {
-        private readonly Vector2Int spriteSize;
-        private int padding = 1;
+        readonly Vector2Int spriteSize;
+        int padding = 1;
 
         
         public SpriteAtlasBuilder()
@@ -103,7 +103,7 @@ namespace AsepriteImporter
             return outline;
         }
 
-        private AseFileSpriteImportData CreateSpriteImportData(string name, Rect rect, List<Vector2[]> outline)
+        AseFileSpriteImportData CreateSpriteImportData(string name, Rect rect, List<Vector2[]> outline)
         {
             return new AseFileSpriteImportData()
             {
@@ -118,7 +118,7 @@ namespace AsepriteImporter
             };
         }
 
-        private static void CalculateColsRows(int spritesCount, Vector2 spriteSize, out int cols, out int rows)
+        static void CalculateColsRows(int spritesCount, Vector2 spriteSize, out int cols, out int rows)
         {
             float minDifference = float.MaxValue;
             cols = spritesCount;
@@ -150,7 +150,7 @@ namespace AsepriteImporter
             }
         }
 
-        private static int CalculateNextBaseTwoValue(int value)
+        static int CalculateNextBaseTwoValue(int value)
         {
             var exponent = 0;
             var baseTwo = 0;

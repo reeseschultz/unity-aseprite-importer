@@ -70,7 +70,7 @@ namespace Aseprite.Utils
                 return b + (2 * s - 1) * (SoftLightD(b) - b);
         }
 
-        private static float SoftLightD(float x)
+        static float SoftLightD(float x)
         {
             if (x <= 0.25)
                 return ((16 * x - 12) * x + 4) * x;
@@ -637,7 +637,7 @@ namespace Aseprite.Utils
             return newLayer;
         }
 
-        private static float BlendDivide(float b, float s)
+        static float BlendDivide(float b, float s)
         {
             if (b == 0)
                 return 0;
@@ -648,12 +648,12 @@ namespace Aseprite.Utils
         }
 
 
-        private static double Lum(Color c)
+        static double Lum(Color c)
         {
             return (0.3 * c.r) + (0.59 * c.g) + (0.11 * c.b);
         }
 
-        private static Color ClipColor(Color c)
+        static Color ClipColor(Color c)
         {
             double l = Lum(c);
             float n = Math.Min(c.r, Math.Min(c.g, c.b));
@@ -679,7 +679,7 @@ namespace Aseprite.Utils
 
 
 
-        private static Color SetLum(Color c, double l)
+        static Color SetLum(Color c, double l)
         {
             double d = l - Lum(c);
             c.r = (float)(c.r + d);
@@ -689,18 +689,18 @@ namespace Aseprite.Utils
             return ClipColor(c);
         }
 
-        private static double Sat(Color c)
+        static double Sat(Color c)
         {
             return Math.Max(c.r, Math.Max(c.g, c.b)) - Math.Min(c.r, Math.Min(c.g, c.b));
         }
 
-        private static double DMax(double x, double y) { return (x > y) ? x : y; }
-        private static double DMin(double x, double y) { return (x < y) ? x : y; }
+        static double DMax(double x, double y) { return (x > y) ? x : y; }
+        static double DMin(double x, double y) { return (x < y) ? x : y; }
 
 
 
 
-        private static Color SetSat(Color c, double s)
+        static Color SetSat(Color c, double s)
         {
             char cMin = GetMinComponent(c);
             char cMid = GetMidComponent(c);
@@ -734,7 +734,7 @@ namespace Aseprite.Utils
 
 
 
-        private static float GetComponent(Color c, char component)
+        static float GetComponent(Color c, char component)
         {
             switch (component)
             {
@@ -747,7 +747,7 @@ namespace Aseprite.Utils
         }
 
 
-        private static Color SetComponent(Color c, char component, float value)
+        static Color SetComponent(Color c, char component, float value)
         {
             switch (component)
             {
@@ -759,7 +759,7 @@ namespace Aseprite.Utils
             return c;
         }
 
-        private static char GetMinComponent(Color c)
+        static char GetMinComponent(Color c)
         {
             var r = new KeyValuePair<char, float>('r', c.r);
             var g = new KeyValuePair<char, float>('g', c.g);
@@ -768,7 +768,7 @@ namespace Aseprite.Utils
             return MIN(r, MIN(g, b)).Key;
         }
 
-        private static char GetMidComponent(Color c)
+        static char GetMidComponent(Color c)
         {
             var r = new KeyValuePair<char, float>('r', c.r);
             var g = new KeyValuePair<char, float>('g', c.g);
@@ -777,7 +777,7 @@ namespace Aseprite.Utils
             return MID(r, g, b).Key;
         }
 
-        private static char GetMaxComponent(Color c)
+        static char GetMaxComponent(Color c)
         {
             var r = new KeyValuePair<char, float>('r', c.r);
             var g = new KeyValuePair<char, float>('g', c.g);
@@ -786,17 +786,17 @@ namespace Aseprite.Utils
             return MAX(r, MAX(g, b)).Key;
         }
 
-        private static KeyValuePair<char, float> MIN(KeyValuePair<char, float> x, KeyValuePair<char, float> y)
+        static KeyValuePair<char, float> MIN(KeyValuePair<char, float> x, KeyValuePair<char, float> y)
         {
             return (x.Value < y.Value) ? x : y;
         }
 
-        private static KeyValuePair<char, float> MAX(KeyValuePair<char, float> x, KeyValuePair<char, float> y)
+        static KeyValuePair<char, float> MAX(KeyValuePair<char, float> x, KeyValuePair<char, float> y)
         {
             return (x.Value > y.Value) ? x : y;
         }
 
-        private static KeyValuePair<char, float> MID(KeyValuePair<char, float> x, KeyValuePair<char, float> y, KeyValuePair<char, float> z)
+        static KeyValuePair<char, float> MID(KeyValuePair<char, float> x, KeyValuePair<char, float> y, KeyValuePair<char, float> z)
         {
             List<KeyValuePair<char, float>> components = new List<KeyValuePair<char, float>>();
             components.Add(x);

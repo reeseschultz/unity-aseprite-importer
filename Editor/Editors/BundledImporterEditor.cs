@@ -9,10 +9,10 @@ namespace AsepriteImporter.Editors
 {
     public class BundledImporterEditor : SpriteImporterEditor
     {
-        private const string FoldoutTextureAdvanced = "textureSettingsAdvanced";
+        const string FoldoutTextureAdvanced = "textureSettingsAdvanced";
         
-        private readonly string[] editorTabs = {"Texture", "Animation"};
-        private int activeTab = 0;
+        readonly string[] editorTabs = {"Texture", "Animation"};
+        int activeTab = 0;
         
         protected override void OnInspectorGUI()
         {
@@ -33,7 +33,7 @@ namespace AsepriteImporter.Editors
         }
         
         
-        private void DrawTextureImporterSettings()
+        void DrawTextureImporterSettings()
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Texture Importer Settings", EditorStyles.boldLabel);
@@ -90,7 +90,7 @@ namespace AsepriteImporter.Editors
             GUI.enabled = true;
         }
         
-        private void DrawSpriteSettings()
+        void DrawSpriteSettings()
         {
             SerializedProperty spriteMode = SerializedObject.FindProperty(TextureSettingsPath + "spriteMode");
             spriteMode.intValue = EditorGUILayout.Popup("Sprite Mode", spriteMode.intValue, Enum.GetNames(typeof(SpriteImportMode)));
@@ -124,7 +124,7 @@ namespace AsepriteImporter.Editors
         }
         
 
-        private void DrawAdvancedSettings()
+        void DrawAdvancedSettings()
         {
             if (!foldoutStates.ContainsKey(FoldoutTextureAdvanced))
                 foldoutStates.Add(FoldoutTextureAdvanced, false);
@@ -215,7 +215,7 @@ namespace AsepriteImporter.Editors
 
 
 
-        private void DrawAnimationImportSettings()
+        void DrawAnimationImportSettings()
         {
             SerializedProperty animationSettingsArray = SerializedObject.FindProperty("animationSettings");
             EditorGUILayout.Space();
@@ -251,7 +251,7 @@ namespace AsepriteImporter.Editors
             }
         }
 
-        private void DrawAnimationSetting(SerializedProperty animationSettingProperty,
+        void DrawAnimationSetting(SerializedProperty animationSettingProperty,
             AseFileAnimationSettings animationSetting)
         {
             string animationName = animationSettingProperty.FindPropertyRelative("animationName").stringValue;
@@ -312,7 +312,7 @@ namespace AsepriteImporter.Editors
 
 
 
-        private void DrawSpriteEditorButton()
+        void DrawSpriteEditorButton()
          {
              Rect spriteEditorRect = EditorGUILayout.GetControlRect(false);
              Rect spriteEditorButtonRect = new Rect(spriteEditorRect.xMax - 80, spriteEditorRect.y, 80, spriteEditorRect.height);

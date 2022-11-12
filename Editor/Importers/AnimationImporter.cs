@@ -10,7 +10,7 @@ namespace AsepriteImporter.Importers
 {
     public class AnimationImporter
     {
-        private readonly AseFile aseFile;
+        readonly AseFile aseFile;
 
         public AnimationImporter(AseFile aseFile)
         {

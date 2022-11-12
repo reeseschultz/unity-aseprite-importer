@@ -6,7 +6,7 @@ namespace AsepriteImporter.DataProviders
 {
     public class AsepriteTextureDataProvider : ITextureDataProvider
     {
-        private readonly AseFileImporter aseFileImporter;
+        readonly AseFileImporter aseFileImporter;
 
         public AsepriteTextureDataProvider(AseFileImporter aseFileImporter)
         {

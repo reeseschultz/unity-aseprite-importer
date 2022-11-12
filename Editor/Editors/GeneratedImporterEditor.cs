@@ -5,12 +5,12 @@ namespace AsepriteImporter.Editors
 {
     public class GeneratedImporterEditor : SpriteImporterEditor
     {
-        private readonly string[] spritePivotOptions =
+        readonly string[] spritePivotOptions =
         {
             "Center", "Top Left", "Top", "Top Right", "Left", "Right", "Bottom Left", "Bottom", "Bottom Right", "Custom"
         };
         
-        private bool customSpritePivot;
+        bool customSpritePivot;
         
         protected override void OnInspectorGUI()
         {
@@ -104,7 +104,7 @@ namespace AsepriteImporter.Editors
             }
         }
         
-        private void PivotPopup(string label) {
+        void PivotPopup(string label) {
             var alignmentProperty = SerializedObject.FindProperty("settings.spriteAlignment");
             var pivotProperty = SerializedObject.FindProperty("settings.spritePivot");
             var pivot = pivotProperty.vector2Value;

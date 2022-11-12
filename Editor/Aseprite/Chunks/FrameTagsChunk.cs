@@ -18,10 +18,10 @@ namespace Aseprite.Chunks
         public ushort FrameFrom { get; private set; }
         public ushort FrameTo { get; private set; }
         public LoopAnimation Animation { get; private set; }
-        private byte[] ForFuture { get; set; } // 8 Bytes
         public Color TagColor { get; set; } // 3 Bytes
-        // 1 Extra Byte
-        public string TagName { get; private set; }
+        public string TagName { get; private set; } // 1 Extra Byte
+
+        byte[] ForFuture { get; set; } // 8 Bytes
 
         public FrameTag(BinaryReader reader)
         {
@@ -43,7 +43,7 @@ namespace Aseprite.Chunks
     public class FrameTagsChunk : Chunk
     {
         public ushort TagCount { get; private set; }
-        private byte[] ForFuture { get; set; } // 8 Bytes
+        byte[] ForFuture { get; set; } // 8 Bytes
         
         public List<FrameTag> Tags { get; private set; }
 

@@ -18,7 +18,7 @@ namespace Aseprite
         public Header Header { get; private set; }
         public List<Frame> Frames { get; private set; }
 
-        private Dictionary<Type, Chunk> chunkCache = new Dictionary<Type, Chunk>();
+        Dictionary<Type, Chunk> chunkCache = new Dictionary<Type, Chunk>();
 
         public AseFile(Stream stream)
         {
@@ -97,7 +97,7 @@ namespace Aseprite
             return frames.ToArray();
         }
 
-        private LayerChunk GetParentLayer(LayerChunk layer)
+        LayerChunk GetParentLayer(LayerChunk layer)
         {
             if (layer.LayerChildLevel == 0)
                 return null;

@@ -4,8 +4,8 @@ namespace Aseprite.Chunks
 {
     public class LinkedCelChunk : CelChunk
     {
-        private AseFile file = null;
-        private CelChunk linkedCelChunk = null;
+        AseFile file = null;
+        CelChunk linkedCelChunk = null;
 
 
         public CelChunk LinkedCel
