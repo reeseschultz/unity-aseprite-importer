@@ -28,9 +28,9 @@ namespace Aseprite.Chunks
 
             CompressedRawCell = reader.ReadBytes(compressedDataSize);
 
-            using (MemoryStream s = new MemoryStream(CompressedRawCell))
+            using (var s = new MemoryStream(CompressedRawCell))
             {
-                using (DeflateStream gzip = new DeflateStream(s, CompressionMode.Decompress))
+                using (var gzip = new DeflateStream(s, CompressionMode.Decompress))
                 {
                     var len = 0;
 
