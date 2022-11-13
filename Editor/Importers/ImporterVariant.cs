@@ -4,10 +4,10 @@ namespace AsepriteImporter.Importers
 {
     public class ImporterVariant
     {
-        public string Name { get; }
-        public SpriteImporter SpriteImporter { get; }
-        public SpriteImporter TileSetImporter { get; }
-        public SpriteImporterEditor Editor { get; }
+        public string Name { get; } = default;
+        public SpriteImporter SpriteImporter { get; } = default;
+        public SpriteImporter TileSetImporter { get; } = default;
+        public SpriteImporterEditor Editor { get; } = default;
 
         public ImporterVariant(string name, SpriteImporter spriteImporter, SpriteImporter tileSetImporter, SpriteImporterEditor editor)
         {

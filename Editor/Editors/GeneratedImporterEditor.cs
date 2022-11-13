@@ -9,21 +9,21 @@ namespace AsepriteImporter.Editors
         {
             "Center", "Top Left", "Top", "Top Right", "Left", "Right", "Bottom Left", "Bottom", "Bottom Right", "Custom"
         };
-        
-        bool customSpritePivot;
-        
+
+        bool customSpritePivot = default;
+
         protected override void OnInspectorGUI()
         {
             var settings = "settings.";
 
             EditorGUILayout.LabelField("Texture Options", EditorStyles.boldLabel);
             {
-                EditorGUI.indentLevel++;
+                ++EditorGUI.indentLevel;
                 var transparencyMode = SerializedObject.FindProperty(settings + "transparencyMode");
                 var transparentColor = SerializedObject.FindProperty(settings + "transparentColor");
 
                 EditorGUILayout.PropertyField(transparencyMode);
-                if (transparencyMode.intValue == (int) TransparencyMode.Mask)
+                if (transparencyMode.intValue == (int)TransparencyMode.Mask)
                 {
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.PropertyField(transparentColor);
@@ -42,23 +42,24 @@ namespace AsepriteImporter.Editors
                     PivotPopup("Pivot");
                 }
 
-                EditorGUI.indentLevel--;
+                --EditorGUI.indentLevel;
             }
+
             EditorGUILayout.Space();
 
             if (ImportType == AseFileImportType.Sprite)
             {
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
+                ++EditorGUI.indentLevel;
                 var bindTypeProperty = SerializedObject.FindProperty(settings + "bindType");
-                var bindType = (AseAnimationBindType) bindTypeProperty.intValue;
+                var bindType = (AseAnimationBindType)bindTypeProperty.intValue;
 
                 EditorGUI.BeginChangeCheck();
-                bindType = (AseAnimationBindType) EditorGUILayout.EnumPopup("Bind Type", bindType);
+                bindType = (AseAnimationBindType)EditorGUILayout.EnumPopup("Bind Type", bindType);
 
                 var animTypeProperty = SerializedObject.FindProperty(settings + "animType");
-                var animType = (AseAnimatorType) animTypeProperty.intValue;
-                animType = (AseAnimatorType) EditorGUILayout.EnumPopup("Animator Type", animType);
+                var animType = (AseAnimatorType)animTypeProperty.intValue;
+                animType = (AseAnimatorType)EditorGUILayout.EnumPopup("Animator Type", animType);
 
                 if (animType == AseAnimatorType.AnimatorOverrideController)
                 {
@@ -69,18 +70,18 @@ namespace AsepriteImporter.Editors
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    bindTypeProperty.intValue = (int) bindType;
-                    animTypeProperty.intValue = (int) animType;
+                    bindTypeProperty.intValue = (int)bindType;
+                    animTypeProperty.intValue = (int)animType;
                 }
 
-                EditorGUI.indentLevel--;
+                --EditorGUI.indentLevel;
             }
 
             if (ImportType == AseFileImportType.Tileset)
             {
                 EditorGUILayout.LabelField("Tileset Options", EditorStyles.boldLabel);
                 {
-                    EditorGUI.indentLevel++;
+                    ++EditorGUI.indentLevel;
 
                     EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "tileSize"));
                     PivotPopup("Tile Pivot");
@@ -90,21 +91,22 @@ namespace AsepriteImporter.Editors
 
                     // tileNameType
                     var tileNameTypeProperty = SerializedObject.FindProperty(settings + "tileNameType");
-                    var tileNameType = (TileNameType) tileNameTypeProperty.enumValueIndex;
+                    var tileNameType = (TileNameType)tileNameTypeProperty.enumValueIndex;
 
                     EditorGUI.BeginChangeCheck();
-                    tileNameType = (TileNameType) EditorGUILayout.EnumPopup("TileNameType", tileNameType);
+                    tileNameType = (TileNameType)EditorGUILayout.EnumPopup("TileNameType", tileNameType);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        tileNameTypeProperty.enumValueIndex = (int) tileNameType;
+                        tileNameTypeProperty.enumValueIndex = (int)tileNameType;
                     }
 
-                    EditorGUI.indentLevel--;
+                    --EditorGUI.indentLevel;
                 }
             }
         }
-        
-        void PivotPopup(string label) {
+
+        void PivotPopup(string label)
+        {
             var alignmentProperty = SerializedObject.FindProperty("settings.spriteAlignment");
             var pivotProperty = SerializedObject.FindProperty("settings.spritePivot");
             var pivot = pivotProperty.vector2Value;
@@ -112,7 +114,8 @@ namespace AsepriteImporter.Editors
 
             EditorGUI.BeginChangeCheck();
             alignment = EditorGUILayout.Popup(label, alignment, spritePivotOptions);
-            switch (alignment) {
+            switch (alignment)
+            {
                 case 0:
                     customSpritePivot = false;
                     pivot = new Vector2(0.5f, 0.5f);
@@ -156,12 +159,15 @@ namespace AsepriteImporter.Editors
 
             alignmentProperty.intValue = alignment;
 
-            if (customSpritePivot) {
-                EditorGUI.indentLevel++;
+            if (customSpritePivot)
+            {
+                ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty("settings.spritePivot"),
                     new GUIContent(label));
-                EditorGUI.indentLevel--;
-            } else if (EditorGUI.EndChangeCheck() && !customSpritePivot) {
+                --EditorGUI.indentLevel;
+            }
+            else if (EditorGUI.EndChangeCheck() && !customSpritePivot)
+            {
                 pivotProperty.vector2Value = pivot;
             }
         }

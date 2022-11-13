@@ -34,15 +34,14 @@ namespace Aseprite.Chunks
 
     public class LayerChunk : Chunk
     {
-        public ushort Flags { get; private set; }
-        public LayerType LayerType { get; private set; }
-        public ushort LayerChildLevel { get; private set; }
-        public ushort DefaultLayerWidth { get; private set; } // Ignored
-        public ushort DefaultLayerHeight { get; private set; } // Ignored
-        public LayerBlendMode BlendMode { get; private set; }
-        public byte Opacity { get; private set; }
-
-        public string LayerName { get; private set; }
+        public ushort Flags { get; private set; } = default;
+        public LayerType LayerType { get; private set; } = default;
+        public ushort LayerChildLevel { get; private set; } = default;
+        public ushort DefaultLayerWidth { get; private set; } = default; // Ignored
+        public ushort DefaultLayerHeight { get; private set; } = default; // Ignored
+        public LayerBlendMode BlendMode { get; private set; } = default;
+        public byte Opacity { get; private set; } = default;
+        public string LayerName { get; private set; } = default;
 
         public bool Visible
         {
@@ -63,7 +62,7 @@ namespace Aseprite.Chunks
 
             reader.ReadBytes(3); // For future
 
-            ushort nameLength = reader.ReadUInt16();
+            var nameLength = reader.ReadUInt16();
             ///int nameLength = (int)(length - 18) - Chunk.HEADER_SIZE;
             LayerName = Encoding.Default.GetString(reader.ReadBytes(nameLength));
         }

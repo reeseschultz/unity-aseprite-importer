@@ -4,12 +4,10 @@ namespace Aseprite.PixelFormats
 {
     public class GrayscalePixel : Pixel
     {
-        public byte[] Color { get; private set; }
+        public byte[] Color { get; private set; } = default;
 
         public GrayscalePixel(Frame frame, byte[] color) : base(frame)
-        {
-            Color = color;
-        }
+            => Color = color;
 
         public override Color GetColor()
         {

@@ -16,11 +16,11 @@ namespace AsepriteImporter.Editors
         protected const string SettingsPath = "settings.";
         protected const string TextureSettingsPath = "textureImporterSettings.";
         protected const string AnimationSettingsPath = "animationSettings.";
-        
-        AseFileImporterEditor baseEditor;
-        
+
+        AseFileImporterEditor baseEditor = default;
+
         protected readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
-        AseFileImporter importer;
+        AseFileImporter importer = default;
 
         public AseFileImporter Importer => importer;
         protected AseFileImportType ImportType => baseEditor.ImportType;
@@ -30,14 +30,12 @@ namespace AsepriteImporter.Editors
         {
             foldoutStates.Clear();
             baseEditor = importerEditor;
-            
+
             OnEnable();
         }
 
         internal void Disable()
-        {
-            OnDisable();
-        }
+            => OnDisable();
 
         internal void InspectorGUI()
         {
@@ -46,23 +44,14 @@ namespace AsepriteImporter.Editors
         }
 
         protected void ApplyAndImport()
-        {
-            baseEditor.CallApplyAndImport();
-        }
+            => baseEditor.CallApplyAndImport();
 
-        protected virtual void OnEnable()
-        {
-        }
+        protected virtual void OnEnable() { }
 
-        protected virtual void OnDisable()
-        {
-        }
-        
-        protected virtual void OnInspectorGUI() 
-        {
-        }
-        
-        
+        protected virtual void OnDisable() { }
+
+        protected virtual void OnInspectorGUI() { }
+
         protected bool CustomEnumPopup(string label, SerializedProperty property, Dictionary<int, string> mappings)
         {
             if (!mappings.ContainsKey(property.enumValueIndex))
@@ -71,13 +60,13 @@ namespace AsepriteImporter.Editors
                 property.enumValueIndex = 0;
             }
 
-            string[] names = mappings.Values.ToArray();
-            int[] indices = mappings.Keys.ToArray();
+            var names = mappings.Values.ToArray();
+            var indices = mappings.Keys.ToArray();
 
-
-            int index = Array.IndexOf(indices, property.enumValueIndex);
+            var index = Array.IndexOf(indices, property.enumValueIndex);
             EditorGUI.BeginChangeCheck();
-            int indexNew = EditorGUILayout.Popup(label, index, names);
+
+            var indexNew = EditorGUILayout.Popup(label, index, names);
             if (EditorGUI.EndChangeCheck())
             {
                 property.enumValueIndex = indices[indexNew];

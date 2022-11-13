@@ -10,38 +10,34 @@ using UnityEngine;
 
 namespace Aseprite
 {
-
     // See file specs here: https://github.com/aseprite/aseprite/blob/master/docs/ase-file-specs.md
 
     public class AseFile
     {
-        public Header Header { get; private set; }
-        public List<Frame> Frames { get; private set; }
+        public Header Header { get; private set; } = default;
+        public List<Frame> Frames { get; private set; } = default;
 
-        Dictionary<Type, Chunk> chunkCache = new Dictionary<Type, Chunk>();
+        Dictionary<Type, Chunk> chunkCache = new();
 
         public AseFile(Stream stream)
         {
-            BinaryReader reader = new BinaryReader(stream);
-            byte[] header = reader.ReadBytes(128);
+            var reader = new BinaryReader(stream);
+            var header = reader.ReadBytes(128);
 
             Header = new Header(header);
             Frames = new List<Frame>();
 
             while (reader.BaseStream.Position < reader.BaseStream.Length)
-            {
                 Frames.Add(new Frame(this, reader));
-            }
         }
-
 
         public List<T> GetChunks<T>() where T : Chunk
         {
-            List<T> chunks = new List<T>();
+            var chunks = new List<T>();
 
-            for (int i = 0; i < this.Frames.Count; i++)
+            for (var i = 0; i < this.Frames.Count; ++i)
             {
-                List<T> cs = this.Frames[i].GetChunks<T>();
+                var cs = this.Frames[i].GetChunks<T>();
 
                 chunks.AddRange(cs);
             }
@@ -53,9 +49,9 @@ namespace Aseprite
         {
             if (!chunkCache.ContainsKey(typeof(T)))
             {
-                for (int i = 0; i < this.Frames.Count; i++)
+                for (var i = 0; i < this.Frames.Count; ++i)
                 {
-                    List<T> cs = this.Frames[i].GetChunks<T>();
+                    var cs = this.Frames[i].GetChunks<T>();
 
                     if (cs.Count > 0)
                     {
@@ -70,28 +66,23 @@ namespace Aseprite
 
         public Texture2D[] GetFrames()
         {
-            List<Texture2D> frames = new List<Texture2D>();
+            var frames = new List<Texture2D>();
 
-            for (int i = 0; i < Frames.Count; i++)
-            {
-                frames.Add(GetFrame(i));
-            }
+            for (var i = 0; i < Frames.Count; ++i) frames.Add(GetFrame(i));
 
             return frames.ToArray();
         }
 
-
         public Texture2D[] GetLayersAsFrames()
         {
-            List<Texture2D> frames = new List<Texture2D>();
-            List<LayerChunk> layers = GetChunks<LayerChunk>();
+            var frames = new List<Texture2D>();
+            var layers = GetChunks<LayerChunk>();
 
-            for (int i = 0; i < layers.Count; i++)
+            for (var i = 0; i < layers.Count; ++i)
             {
-                List<Texture2D> layerFrames = GetLayerTexture(i, layers[i]);
+                var layerFrames = GetLayerTexture(i, layers[i]);
 
-                if (layerFrames.Count > 0)
-                    frames.AddRange(layerFrames);
+                if (layerFrames.Count > 0) frames.AddRange(layerFrames);
             }
 
             return frames.ToArray();
@@ -99,59 +90,52 @@ namespace Aseprite
 
         LayerChunk GetParentLayer(LayerChunk layer)
         {
-            if (layer.LayerChildLevel == 0)
-                return null;
+            if (layer.LayerChildLevel == 0) return default;
 
-            int childLevel = layer.LayerChildLevel;
+            var layers = GetChunks<LayerChunk>();
+            var index = layers.IndexOf(layer);
 
-            List<LayerChunk> layers = GetChunks<LayerChunk>();
-            int index = layers.IndexOf(layer);
+            if (index < 0) return default;
 
-            if (index < 0)
-                return null;
-
-            for (int i = index -1; i > 0; i--)
-            {
+            for (var i = index - 1; i > 0; --i)
                 if (layers[i].LayerChildLevel == layer.LayerChildLevel - 1)
                     return layers[i];
-            }
 
-            return null;
+            return default;
         }
 
         public List<Texture2D> GetLayerTexture(int layerIndex, LayerChunk layer)
         {
+            var layers = GetChunks<LayerChunk>();
+            var textures = new List<Texture2D>();
 
-            List<LayerChunk> layers = GetChunks<LayerChunk>();
-            List<Texture2D> textures = new List<Texture2D>();
-
-            for (int frameIndex = 0; frameIndex < Frames.Count; frameIndex++)
+            for (var frameIndex = 0; frameIndex < Frames.Count; ++frameIndex)
             {
-                Frame frame = Frames[frameIndex];
-                List<CelChunk> cels = frame.GetChunks<CelChunk>();
+                var frame = Frames[frameIndex];
+                var cels = frame.GetChunks<CelChunk>();
 
-                for (int i = 0; i < cels.Count; i++)
+                for (var i = 0; i < cels.Count; ++i)
                 {
-                    if (cels[i].LayerIndex != layerIndex)
-                        continue;
+                    if (cels[i].LayerIndex != layerIndex) continue;
 
-                    LayerBlendMode blendMode = layer.BlendMode;
-                    float opacity = Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f);
+                    var blendMode = layer.BlendMode;
+                    var opacity = Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f);
+                    var visibility = layer.Visible;
 
-                    bool visibility = layer.Visible;
-
-                    LayerChunk parent = GetParentLayer(layer);
-                    while (parent != null)
+                    var parent = GetParentLayer(layer);
+                    while (parent != default)
                     {
                         visibility &= parent.Visible;
-                        if (visibility == false)
-                            break;
+
+                        if (visibility == false) break;
 
                         parent = GetParentLayer(parent);
                     }
 
-                    if (visibility == false || layer.LayerType == LayerType.Group)
-                        continue;
+                    if (
+                        visibility == false ||
+                        layer.LayerType == LayerType.Group
+                    ) continue;
 
                     textures.Add(GetTextureFromCel(cels[i]));
                 }
@@ -162,43 +146,40 @@ namespace Aseprite
 
         public Texture2D GetFrame(int index)
         {
-            Frame frame = Frames[index];
-
-            Texture2D texture = Texture2DUtil.CreateTransparentTexture(Header.Width, Header.Height);
-
-            
-            List<LayerChunk> layers = GetChunks<LayerChunk>();
-            List<CelChunk> cels = frame.GetChunks<CelChunk>();
+            var texture = Texture2DUtil.CreateTransparentTexture(Header.Width, Header.Height);
+            var layers = GetChunks<LayerChunk>();
+            var frame = Frames[index];
+            var cels = frame.GetChunks<CelChunk>();
 
             cels.Sort((ca, cb) => ca.LayerIndex.CompareTo(cb.LayerIndex));
 
-            for (int i = 0; i < cels.Count; i++)
+            for (var i = 0; i < cels.Count; ++i)
             {
-                LayerChunk layer = layers[cels[i].LayerIndex];
-                if (layer.LayerName.StartsWith("@")) //ignore metadata layer
-                    continue;
+                var layer = layers[cels[i].LayerIndex];
 
-                LayerBlendMode blendMode = layer.BlendMode;
-                float opacity = Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f);
+                if (layer.LayerName.StartsWith("@")) continue; // ignore metadata layer
 
-                bool visibility = layer.Visible;
+                var visibility = layer.Visible;
+                var parent = GetParentLayer(layer);
 
-
-                LayerChunk parent = GetParentLayer(layer);
-                while (parent != null)
+                while (parent != default)
                 {
                     visibility &= parent.Visible;
-                    if (visibility == false)
-                        break;
+
+                    if (visibility == false) break;
 
                     parent = GetParentLayer(parent);
                 }
 
-                if (visibility == false || layer.LayerType == LayerType.Group)
-                    continue;
+                if (
+                    visibility == false ||
+                    layer.LayerType == LayerType.Group
+                ) continue;
 
-                Texture2D celTex = GetTextureFromCel(cels[i]);
-                
+                var celTex = GetTextureFromCel(cels[i]);
+                var blendMode = layer.BlendMode;
+                var opacity = Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f);
+
                 switch (blendMode)
                 {
                     case LayerBlendMode.Normal: texture = Texture2DBlender.Normal(texture, celTex, opacity); break;
@@ -223,25 +204,22 @@ namespace Aseprite
                 }
             }
 
-            
-
             return texture;
         }
 
         public Texture2D GetTextureFromCel(CelChunk cel)
         {
-            int canvasWidth = Header.Width;
-            int canvasHeight = Header.Height;
-            
-            Texture2D texture = Texture2DUtil.CreateTransparentTexture(canvasWidth, canvasHeight);
-            Color[] colors = new Color[canvasWidth * canvasHeight];
+            var canvasWidth = Header.Width;
+            var canvasHeight = Header.Height;
 
-            int pixelIndex = 0;
-            int celXEnd = cel.Width + cel.X;
-            int celYEnd = cel.Height + cel.Y;
+            var colors = new Color[canvasWidth * canvasHeight];
 
+            var celXEnd = cel.Width + cel.X;
+            var celYEnd = cel.Height + cel.Y;
 
-            for (int y = cel.Y; y < celYEnd; y++)
+            var pixelIndex = 0;
+
+            for (var y = cel.Y; y < celYEnd; ++y)
             {
                 if (y < 0 || y >= canvasHeight)
                 {
@@ -249,17 +227,19 @@ namespace Aseprite
                     continue;
                 }
 
-                for (int x = cel.X; x < celXEnd; x++)
+                for (var x = cel.X; x < celXEnd; ++x)
                 {
                     if (x >= 0 && x < canvasWidth)
                     {
-                        int index = (canvasHeight - 1 - y) * canvasWidth + x;
+                        var index = (canvasHeight - 1 - y) * canvasWidth + x;
                         colors[index] = cel.RawPixelData[pixelIndex].GetColor();
                     }
 
                     ++pixelIndex;
                 }
             }
+
+            var texture = Texture2DUtil.CreateTransparentTexture(canvasWidth, canvasHeight);
 
             texture.SetPixels(0, 0, canvasWidth, canvasHeight, colors);
             texture.Apply();
@@ -269,58 +249,53 @@ namespace Aseprite
 
         public FrameTag[] GetAnimations()
         {
-            List<FrameTagsChunk> tagChunks = this.GetChunks<FrameTagsChunk>();
-
-            List<FrameTag> animations = new List<FrameTag>();
+            var tagChunks = this.GetChunks<FrameTagsChunk>();
+            var animations = new List<FrameTag>();
 
             foreach (FrameTagsChunk tagChunk in tagChunks)
-            {
                 foreach (FrameTag tag in tagChunk.Tags)
-                {
                     animations.Add(tag);
-                }
-            }
 
             return animations.ToArray();
         }
 
         public MetaData[] GetMetaData(Vector2 spritePivot, int pixelsPerUnit)
         {
-            Dictionary<int, MetaData> metadatas = new Dictionary<int, MetaData>();
+            var metadatas = new Dictionary<int, MetaData>();
 
-            for (int index = 0; index < Frames.Count; index++)
+            for (var index = 0; index < Frames.Count; ++index)
             {
-                List<LayerChunk> layers = GetChunks<LayerChunk>();
-                List<CelChunk> cels = Frames[index].GetChunks<CelChunk>();
+                var layers = GetChunks<LayerChunk>();
+                var cels = Frames[index].GetChunks<CelChunk>();
 
                 cels.Sort((ca, cb) => ca.LayerIndex.CompareTo(cb.LayerIndex));
 
-                for (int i = 0; i < cels.Count; i++)
+                for (var i = 0; i < cels.Count; ++i)
                 {
-                    int layerIndex = cels[i].LayerIndex;
-                    LayerChunk layer = layers[layerIndex];
-                    if (!layer.LayerName.StartsWith(MetaData.MetaDataChar)) //read only metadata layer
-                        continue;
+                    var layerIndex = cels[i].LayerIndex;
+                    var layer = layers[layerIndex];
 
-                    if (!metadatas.ContainsKey(layerIndex))
-                        metadatas[layerIndex] = new MetaData(layer.LayerName);
+                    if (!layer.LayerName.StartsWith(MetaData.MetaDataChar)) continue; // only read metadata layer
+
+                    if (!metadatas.ContainsKey(layerIndex)) metadatas[layerIndex] = new MetaData(layer.LayerName);
+
                     var metadata = metadatas[layerIndex];
+                    var cel = cels[i];
+                    var center = Vector2.zero;
+                    var pixelCount = 0;
 
-                    CelChunk cel = cels[i];
-                    Vector2 center = Vector2.zero;
-                    int pixelCount = 0;
-
-                    for (int y = 0; y < cel.Height; ++y)
+                    for (var y = 0; y < cel.Height; ++y)
                     {
-                        for (int x = 0; x < cel.Width; ++x)
+                        for (var x = 0; x < cel.Width; ++x)
                         {
-                            int texX = cel.X + x;
-                            int texY = -(cel.Y + y) + Header.Height - 1;
+                            var texX = cel.X + x;
+                            var texY = -(cel.Y + y) + Header.Height - 1;
                             var col = cel.RawPixelData[x + y * cel.Width];
+
                             if (col.GetColor().a > 0.1f)
                             {
                                 center += new Vector2(texX, texY);
-                                pixelCount++;
+                                ++pixelCount;
                             }
                         }
                     }
@@ -328,6 +303,7 @@ namespace Aseprite
                     if (pixelCount > 0)
                     {
                         center /= pixelCount;
+
                         var pivot = Vector2.Scale(spritePivot, new Vector2(Header.Width, Header.Height));
                         var posWorld = (center - pivot) / pixelsPerUnit + Vector2.one * 0.5f / pixelsPerUnit; //center pos in middle of pixels
 
@@ -335,32 +311,30 @@ namespace Aseprite
                     }
                 }
             }
+
             return metadatas.Values.ToArray();
         }
 
         public Texture2D GetTextureAtlas()
         {
-            Texture2D[] frames = this.GetFrames();
+            var frames = this.GetFrames();
 
-            Texture2D atlas = Texture2DUtil.CreateTransparentTexture(Header.Width * frames.Length, Header.Height);
-            List<Rect> spriteRects = new List<Rect>();
+            var atlas = Texture2DUtil.CreateTransparentTexture(Header.Width * frames.Length, Header.Height);
+            var spriteRects = new List<Rect>();
 
-            int col = 0;
-            int row = 0;
+            var col = 0;
+            var row = 0;
 
             foreach (Texture2D frame in frames)
             {
-                Rect spriteRect = new Rect(col * Header.Width, atlas.height - ((row + 1) * Header.Height), Header.Width, Header.Height);
+                var spriteRect = new Rect(col++ * Header.Width, atlas.height - ((row + 1) * Header.Height), Header.Width, Header.Height);
                 atlas.SetPixels((int)spriteRect.x, (int)spriteRect.y, (int)spriteRect.width, (int)spriteRect.height, frame.GetPixels());
                 atlas.Apply();
 
                 spriteRects.Add(spriteRect);
-
-                col++;
             }
 
             return atlas;
         }
     }
-
 }

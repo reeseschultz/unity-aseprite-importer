@@ -1,41 +1,31 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AsepriteImporter.Settings
 {
     [System.Serializable]
     public class AseFileAnimationSettings
     {
-
-        public AseFileAnimationSettings()
-        {
-        }
+        public AseFileAnimationSettings() { }
 
         public AseFileAnimationSettings(string name)
-        {
-            animationName = name;
-        }
+            => animationName = name;
 
-        [SerializeField] public string animationName;
+        [SerializeField] public string animationName = default;
         [SerializeField] public bool loopTime = true;
-        [SerializeField] public string about;
-        [SerializeField] public Sprite[] sprites;
-        [SerializeField] public int[] frameNumbers;
+        [SerializeField] public string about = default;
+        [SerializeField] public Sprite[] sprites = default;
+        [SerializeField] public int[] frameNumbers = default;
 
         public override string ToString()
-        {
-            return animationName;
-        }
+            => animationName;
 
         public bool HasInvalidSprites
         {
             get
             {
                 foreach (Sprite sprite in sprites)
-                {
-                    if (sprite == null)
+                    if (sprite == default)
                         return true;
-                }
 
                 return false;
             }

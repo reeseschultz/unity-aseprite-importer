@@ -7,26 +7,21 @@ namespace Aseprite
 {
     public class Frame
     {
-        public AseFile File = null;
+        public AseFile File = default;
 
-        public uint Length { get; private set; }
-        public ushort MagicNumber { get; private set; }
-        
-        public ushort OldChunksCount { get; private set; }
-        public uint ChunksCount { get; private set; }
-        public ushort FrameDuration { get; private set; }
+        public uint Length { get; private set; } = default;
+        public ushort MagicNumber { get; private set; } = default;
 
-        public List<Chunk> Chunks { get; private set; }
-        
+        public ushort OldChunksCount { get; private set; } = default;
+        public uint ChunksCount { get; private set; } = default;
+        public ushort FrameDuration { get; private set; } = default;
+
+        public List<Chunk> Chunks { get; private set; } = default;
+
         bool useNewChunkCount = true;
-        
+
         public uint GetChunkCount()
-        {
-            if (useNewChunkCount)
-                return ChunksCount;
-            else
-                return OldChunksCount;
-        }
+            => useNewChunkCount ? ChunksCount : OldChunksCount;
 
         public Frame(AseFile file, BinaryReader reader)
         {
@@ -39,59 +34,46 @@ namespace Aseprite
             FrameDuration = reader.ReadUInt16();
 
             reader.ReadBytes(2); // For Future
-            
+
             ChunksCount = reader.ReadUInt32();
-            if (ChunksCount == 0)
-                useNewChunkCount = false;
+
+            if (ChunksCount == 0) useNewChunkCount = false;
 
             Chunks = new List<Chunk>();
 
-            for (int i = 0; i < GetChunkCount(); i++)
+            for (var i = 0; i < GetChunkCount(); ++i)
             {
-                Chunk chunk = Chunk.ReadChunk(this, reader);
+                var chunk = Chunk.ReadChunk(this, reader);
 
-                if (chunk != null)
-                    Chunks.Add(chunk);
+                if (chunk != default) Chunks.Add(chunk);
             }
         }
 
         public T GetChunk<T>() where T : Chunk
         {
-            for (int i = 0; i < Chunks.Count; i++)
-            {
+            for (var i = 0; i < Chunks.Count; ++i)
                 if (Chunks[i] is T)
-                {
                     return (T)Chunks[i];
-                }
-            }
 
-            return null;
+            return default;
         }
 
         public T GetCelChunk<T>(int layerIndex) where T : CelChunk
         {
-            for (int i = 0; i < Chunks.Count; i++)
-            {
+            for (var i = 0; i < Chunks.Count; ++i)
                 if (Chunks[i] is T && (Chunks[i] as CelChunk).LayerIndex == layerIndex)
-                {
                     return (T)Chunks[i];
-                }
-            }
 
-            return null;
+            return default;
         }
 
         public List<T> GetChunks<T>() where T : Chunk
         {
-            List<T> chunks = new List<T>();
+            var chunks = new List<T>();
 
-            for (int i = 0; i < Chunks.Count; i++)
-            {
+            for (var i = 0; i < Chunks.Count; ++i)
                 if (Chunks[i] is T)
-                {
                     chunks.Add((T)Chunks[i]);
-                }
-            }
 
             return chunks;
         }

@@ -10,13 +10,13 @@ namespace AsepriteImporter.Editors
     public class BundledImporterEditor : SpriteImporterEditor
     {
         const string FoldoutTextureAdvanced = "textureSettingsAdvanced";
-        
-        readonly string[] editorTabs = {"Texture", "Animation"};
+
+        readonly string[] editorTabs = { "Texture", "Animation" };
         int activeTab = 0;
-        
+
         protected override void OnInspectorGUI()
         {
-            if (Importer.textureImporterSettings == null)
+            if (Importer.textureImporterSettings == default)
                 Importer.textureImporterSettings = new AseFileTextureImportSettings();
 
             activeTab = GUILayout.Toolbar(activeTab, editorTabs);
@@ -31,26 +31,22 @@ namespace AsepriteImporter.Editors
                     break;
             }
         }
-        
-        
+
         void DrawTextureImporterSettings()
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Texture Importer Settings", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
-            SerializedProperty textureType = SerializedObject.FindProperty(TextureSettingsPath + "textureType");
+            var textureType = SerializedObject.FindProperty(TextureSettingsPath + "textureType");
             GUI.enabled = false;
+
             if (CustomEnumPopup("Texture Type", textureType, TextureImporterEditorUtils.MappingTextureImportTypes))
-            {
                 Importer.textureImporterSettings.ApplyTextureType(Importer.textureImporterSettings.textureType);
-            }
 
             GUI.enabled = true;
 
-            SerializedProperty textureShape = SerializedObject.FindProperty(TextureSettingsPath + "textureShape");
-
-
+            var textureShape = SerializedObject.FindProperty(TextureSettingsPath + "textureShape");
 
             if (TextureImporterEditorUtils.textureType2DFixed.Contains(textureType.enumValueIndex))
             {
@@ -63,50 +59,49 @@ namespace AsepriteImporter.Editors
 
             EditorGUILayout.Space();
 
-            if (textureType.enumValueIndex == (int) TextureImporterEditorUtils.TextureImportTypeIndex.Sprite)
-            {
+            if (textureType.enumValueIndex == (int)TextureImporterEditorUtils.TextureImportTypeIndex.Sprite)
                 DrawSpriteSettings();
-            }
 
             DrawAdvancedSettings();
 
             EditorGUILayout.Space();
 
-            SerializedProperty wrapMode = SerializedObject.FindProperty(TextureSettingsPath + "wrapMode");
+            var wrapMode = SerializedObject.FindProperty(TextureSettingsPath + "wrapMode");
             EditorGUILayout.PropertyField(wrapMode);
 
-            SerializedProperty filterMode = SerializedObject.FindProperty(TextureSettingsPath + "filterMode");
+            var filterMode = SerializedObject.FindProperty(TextureSettingsPath + "filterMode");
             CustomEnumPopup("Filter Mode", filterMode, TextureImporterEditorUtils.mappingFilterMode);
 
+            var aniso = SerializedObject.FindProperty(TextureSettingsPath + "aniso");
 
-            SerializedProperty aniso = SerializedObject.FindProperty(TextureSettingsPath + "aniso");
-            if (!(Array.IndexOf(TextureImporterEditorUtils.textureTypeAnisoEnabled, textureType.enumValueIndex) != -1 &&
-                  filterMode.enumValueIndex != 0))
-            {
-                GUI.enabled = false;
-            }
+            if (
+                !(
+                    Array.IndexOf(TextureImporterEditorUtils.textureTypeAnisoEnabled, textureType.enumValueIndex) != -1 &&
+                    filterMode.enumValueIndex != 0
+                )
+            ) GUI.enabled = false;
 
-            aniso.intValue = (int) EditorGUILayout.Slider("Aniso Level", aniso.intValue, 0, 16);
+            aniso.intValue = (int)EditorGUILayout.Slider("Aniso Level", aniso.intValue, 0, 16);
             GUI.enabled = true;
         }
-        
+
         void DrawSpriteSettings()
         {
-            SerializedProperty spriteMode = SerializedObject.FindProperty(TextureSettingsPath + "spriteMode");
+            var spriteMode = SerializedObject.FindProperty(TextureSettingsPath + "spriteMode");
             spriteMode.intValue = EditorGUILayout.Popup("Sprite Mode", spriteMode.intValue, Enum.GetNames(typeof(SpriteImportMode)));
 
             ++EditorGUI.indentLevel;
 
-            SerializedProperty pixelsPerUnit = SerializedObject.FindProperty(TextureSettingsPath + "spritePixelsPerUnit");
+            var pixelsPerUnit = SerializedObject.FindProperty(TextureSettingsPath + "spritePixelsPerUnit");
             EditorGUILayout.PropertyField(pixelsPerUnit, new GUIContent("Pixels Per Unit"));
 
-            SerializedProperty meshType = SerializedObject.FindProperty(TextureSettingsPath + "spriteMeshType");
+            var meshType = SerializedObject.FindProperty(TextureSettingsPath + "spriteMeshType");
             EditorGUILayout.PropertyField(meshType, new GUIContent("Mesh Type"));
 
-            SerializedProperty extrudeEdges = SerializedObject.FindProperty(TextureSettingsPath + "spriteExtrude");
+            var extrudeEdges = SerializedObject.FindProperty(TextureSettingsPath + "spriteExtrude");
             EditorGUILayout.IntSlider(extrudeEdges, 0, 32, new GUIContent("Extrude Edges"));
 
-            SerializedProperty pivot = SerializedObject.FindProperty(TextureSettingsPath + "spriteAlignment");
+            var pivot = SerializedObject.FindProperty(TextureSettingsPath + "spriteAlignment");
             pivot.intValue = EditorGUILayout.Popup("Pivot", pivot.intValue, Enum.GetNames(typeof(SpriteAlignment)));
 
             if (pivot.intValue == (int)SpriteAlignment.Custom)
@@ -115,14 +110,12 @@ namespace AsepriteImporter.Editors
                 EditorGUILayout.PropertyField(spritePivot, new GUIContent(" "));
             }
 
-            SerializedProperty generatePhysics = SerializedObject.FindProperty(TextureSettingsPath + "spriteGenerateFallbackPhysicsShape");
+            var generatePhysics = SerializedObject.FindProperty(TextureSettingsPath + "spriteGenerateFallbackPhysicsShape");
             EditorGUILayout.PropertyField(generatePhysics, new GUIContent("Generate Physics Shape"));
 
             DrawSpriteEditorButton();
-
             --EditorGUI.indentLevel;
         }
-        
 
         void DrawAdvancedSettings()
         {
@@ -131,27 +124,29 @@ namespace AsepriteImporter.Editors
 
             foldoutStates[FoldoutTextureAdvanced] =
                 EditorGUILayout.Foldout(foldoutStates[FoldoutTextureAdvanced], "Advanced");
+
             if (foldoutStates[FoldoutTextureAdvanced])
             {
                 ++EditorGUI.indentLevel;
 
-                SerializedProperty srgbTexture = SerializedObject.FindProperty(TextureSettingsPath + "sRGBTexture");
+                var srgbTexture = SerializedObject.FindProperty(TextureSettingsPath + "sRGBTexture");
                 EditorGUILayout.PropertyField(srgbTexture, new GUIContent("sRGB (Color Texture)"));
 
-                SerializedProperty alphaSource = SerializedObject.FindProperty(TextureSettingsPath + "alphaSource");
+                var alphaSource = SerializedObject.FindProperty(TextureSettingsPath + "alphaSource");
                 CustomEnumPopup("Alpha Source", alphaSource, TextureImporterEditorUtils.mappingAlphaSource);
 
                 if (alphaSource.enumValueIndex == 0)
                     GUI.enabled = false;
-                SerializedProperty alphaIsTransparency =
+
+                var alphaIsTransparency =
                     SerializedObject.FindProperty(TextureSettingsPath + "alphaIsTransparency");
                 EditorGUILayout.PropertyField(alphaIsTransparency);
                 GUI.enabled = true;
 
-                SerializedProperty readable = SerializedObject.FindProperty(TextureSettingsPath + "readable");
+                var readable = SerializedObject.FindProperty(TextureSettingsPath + "readable");
                 EditorGUILayout.PropertyField(readable, new GUIContent("Read/Write Enabled"));
 
-                SerializedProperty mipmapEnabled =
+                var mipmapEnabled =
                     SerializedObject.FindProperty(TextureSettingsPath + "mipmapEnabled");
                 EditorGUILayout.PropertyField(mipmapEnabled, new GUIContent("Generate Mip Maps"));
 
@@ -159,15 +154,15 @@ namespace AsepriteImporter.Editors
                 {
                     ++EditorGUI.indentLevel;
 
-                    SerializedProperty borderMipmap =
+                    var borderMipmap =
                         SerializedObject.FindProperty(TextureSettingsPath + "borderMipmap");
                     EditorGUILayout.PropertyField(borderMipmap, new GUIContent("Border Mip Maps"));
 
-                    SerializedProperty mipmapFilter =
+                    var mipmapFilter =
                         SerializedObject.FindProperty(TextureSettingsPath + "mipmapFilter");
                     CustomEnumPopup("Mip Map Filtering", mipmapFilter, TextureImporterEditorUtils.mappingMipMapFilter);
 
-                    SerializedProperty mipMapsPreserveCoverage =
+                    var mipMapsPreserveCoverage =
                         SerializedObject.FindProperty(TextureSettingsPath + "mipMapsPreserveCoverage");
                     EditorGUILayout.PropertyField(mipMapsPreserveCoverage);
 
@@ -175,24 +170,23 @@ namespace AsepriteImporter.Editors
                     {
                         ++EditorGUI.indentLevel;
 
-                        SerializedProperty mipmapBias =
+                        var mipmapBias =
                             SerializedObject.FindProperty(TextureSettingsPath + "mipmapBias");
                         EditorGUILayout.PropertyField(mipmapBias, new GUIContent("Alpha Cutoff Value"));
 
                         --EditorGUI.indentLevel;
                     }
 
-
-                    SerializedProperty fadeOut = SerializedObject.FindProperty(TextureSettingsPath + "fadeOut");
+                    var fadeOut = SerializedObject.FindProperty(TextureSettingsPath + "fadeOut");
                     EditorGUILayout.PropertyField(fadeOut, new GUIContent("Fadeout Mip Maps"));
 
                     if (fadeOut.boolValue)
                     {
                         ++EditorGUI.indentLevel;
 
-                        SerializedProperty mipmapFadeDistanceStart =
+                        var mipmapFadeDistanceStart =
                             SerializedObject.FindProperty(TextureSettingsPath + "mipmapFadeDistanceStart");
-                        SerializedProperty mipmapFadeDistanceEnd =
+                        var mipmapFadeDistanceEnd =
                             SerializedObject.FindProperty(TextureSettingsPath + "mipmapFadeDistanceEnd");
 
                         float fadeStart = mipmapFadeDistanceStart.intValue;
@@ -200,8 +194,8 @@ namespace AsepriteImporter.Editors
 
                         EditorGUILayout.MinMaxSlider("Fade Range", ref fadeStart, ref fadeEnd, 0, 10);
 
-                        mipmapFadeDistanceStart.intValue = (int) fadeStart;
-                        mipmapFadeDistanceEnd.intValue = (int) fadeEnd;
+                        mipmapFadeDistanceStart.intValue = (int)fadeStart;
+                        mipmapFadeDistanceEnd.intValue = (int)fadeEnd;
 
                         --EditorGUI.indentLevel;
                     }
@@ -213,37 +207,37 @@ namespace AsepriteImporter.Editors
             }
         }
 
-
-
         void DrawAnimationImportSettings()
         {
-            SerializedProperty animationSettingsArray = SerializedObject.FindProperty("animationSettings");
+            var animationSettingsArray = SerializedObject.FindProperty("animationSettings");
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Animation Import Settings", EditorStyles.boldLabel);
-            
-            if (animationSettingsArray != null)
+
+            if (animationSettingsArray != default)
             {
-                int arraySize = animationSettingsArray.arraySize;
+                var arraySize = animationSettingsArray.arraySize;
                 if (arraySize == 0)
                 {
                     EditorGUILayout.HelpBox($"\"{Importer.name}\" does not contain any animation", MessageType.None);
                     return;
                 }
 
-                SerializedProperty generateAnimations = SerializedObject.FindProperty("settings.generateAnimations");
+                var generateAnimations = SerializedObject.FindProperty("settings.generateAnimations");
                 EditorGUILayout.PropertyField(generateAnimations);
 
                 /* Not implemented yet
-                SerializedProperty createAnimationAssets = SerializedObject.FindProperty("settings.createAnimationAssets");
+                var createAnimationAssets = SerializedObject.FindProperty("settings.createAnimationAssets");
                 EditorGUILayout.PropertyField(createAnimationAssets);
                 */
-                
+
                 GUI.enabled = generateAnimations.boolValue;
                 ++EditorGUI.indentLevel;
-                for (int i = 0; i < arraySize; i++)
+                for (var i = 0; i < arraySize; ++i)
                 {
-                    DrawAnimationSetting(animationSettingsArray.GetArrayElementAtIndex(i),
-                        Importer.animationSettings[i]);
+                    DrawAnimationSetting(
+                        animationSettingsArray.GetArrayElementAtIndex(i),
+                        Importer.animationSettings[i]
+                    );
                 }
 
                 --EditorGUI.indentLevel;
@@ -251,25 +245,19 @@ namespace AsepriteImporter.Editors
             }
         }
 
-        void DrawAnimationSetting(SerializedProperty animationSettingProperty,
-            AseFileAnimationSettings animationSetting)
+        void DrawAnimationSetting(SerializedProperty animationSettingProperty, AseFileAnimationSettings animationSetting)
         {
-            string animationName = animationSettingProperty.FindPropertyRelative("animationName").stringValue;
+            var animationName = animationSettingProperty.FindPropertyRelative("animationName").stringValue;
 
-            if (animationName == null)
-                return;
-
-
+            if (animationName == default) return;
 
             if (!foldoutStates.ContainsKey(animationName))
-            {
                 foldoutStates.Add(animationName, false);
-            }
 
             EditorGUILayout.BeginVertical(GUI.skin.box);
-            EditorGUI.indentLevel++;
+            ++EditorGUI.indentLevel;
 
-            GUIStyle foldoutStyle = EditorStyles.foldout;
+            var foldoutStyle = EditorStyles.foldout;
             FontStyle prevoiusFontStyle = foldoutStyle.fontStyle;
             foldoutStyle.fontStyle = FontStyle.Bold;
 
@@ -279,24 +267,21 @@ namespace AsepriteImporter.Editors
             if (animationSetting.HasInvalidSprites)
                 content.image = EditorGUIUtility.IconContent("console.warnicon.sml").image;
 
-
-            if (foldoutStates[animationName] = EditorGUILayout.Foldout(foldoutStates[animationName],
-                content, true, foldoutStyle))
+            if (foldoutStates[animationName] = EditorGUILayout.Foldout(foldoutStates[animationName], content, true, foldoutStyle))
             {
                 if (animationSetting.HasInvalidSprites)
                     EditorGUILayout.HelpBox(
                         $"The animation '{animationName}' will not be imported.\nSome sprites are missing.",
                         MessageType.Warning);
 
-
                 EditorGUILayout.PropertyField(animationSettingProperty.FindPropertyRelative("loopTime"));
                 EditorGUILayout.HelpBox(animationSettingProperty.FindPropertyRelative("about").stringValue,
                     MessageType.None);
 
-                SerializedProperty sprites = animationSettingProperty.FindPropertyRelative("sprites");
-                SerializedProperty frameNumbers = animationSettingProperty.FindPropertyRelative("frameNumbers");
+                var sprites = animationSettingProperty.FindPropertyRelative("sprites");
+                var frameNumbers = animationSettingProperty.FindPropertyRelative("frameNumbers");
 
-                for (int i = 0; i < sprites.arraySize; i++)
+                for (var i = 0; i < sprites.arraySize; ++i)
                 {
                     EditorGUILayout.PropertyField(sprites.GetArrayElementAtIndex(i),
                         new GUIContent("Frame #" + frameNumbers.GetArrayElementAtIndex(i).intValue));
@@ -305,39 +290,37 @@ namespace AsepriteImporter.Editors
 
             foldoutStyle.fontStyle = prevoiusFontStyle;
 
-            EditorGUI.indentLevel--;
+            --EditorGUI.indentLevel;
             EditorGUILayout.EndVertical();
         }
-    
-
-
 
         void DrawSpriteEditorButton()
-         {
-             Rect spriteEditorRect = EditorGUILayout.GetControlRect(false);
-             Rect spriteEditorButtonRect = new Rect(spriteEditorRect.xMax - 80, spriteEditorRect.y, 80, spriteEditorRect.height);
-             if (GUI.Button(spriteEditorButtonRect, "Sprite Editor"))
-             {
-                 if (EditorUtility.IsDirty(SerializedObject.targetObject.GetInstanceID()))
-                 {
-                     var assetPath = (SerializedObject.targetObject as AseFileImporter).assetPath;
+        {
+            var spriteEditorRect = EditorGUILayout.GetControlRect(false);
+            var spriteEditorButtonRect = new Rect(spriteEditorRect.xMax - 80, spriteEditorRect.y, 80, spriteEditorRect.height);
 
-                     if (EditorUtility.DisplayDialog("Unapplied import settings", $"Unapplied import settings for {assetPath}.\nApply and continue to sprite editor or cancel.", "Apply", "Cancel"))
-                     {
-                         ApplyAndImport();
-                     }
-                     else
-                     {
-                         return;
-                     }
-                 }
+            if (GUI.Button(spriteEditorButtonRect, "Sprite Editor"))
+            {
+                if (EditorUtility.IsDirty(SerializedObject.targetObject.GetInstanceID()))
+                {
+                    var assetPath = (SerializedObject.targetObject as AseFileImporter).assetPath;
 
-                 EditorApplication.ExecuteMenuItem("Window/2D/Sprite Editor");
+                    if (EditorUtility.DisplayDialog("Unapplied import settings", $"Unapplied import settings for {assetPath}.\nApply and continue to sprite editor or cancel.", "Apply", "Cancel"))
+                    {
+                        ApplyAndImport();
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
 
-                 GUIUtility.ExitGUI();
-             }
+                EditorApplication.ExecuteMenuItem("Window/2D/Sprite Editor");
 
-             EditorGUILayout.Space();
-         }
+                GUIUtility.ExitGUI();
+            }
+
+            EditorGUILayout.Space();
+        }
     }
 }

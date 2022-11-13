@@ -9,14 +9,11 @@ namespace AsepriteImporter
 {
     public class SpriteAtlasBuilder
     {
-        readonly Vector2Int spriteSize;
+        readonly Vector2Int spriteSize = default;
         int padding = 1;
 
-        
         public SpriteAtlasBuilder()
-        {
-            spriteSize = new Vector2Int(16, 16);
-        }
+            => spriteSize = new Vector2Int(16, 16);
 
         public SpriteAtlasBuilder(Vector2Int spriteSize, int padding = 1)
         {
@@ -32,7 +29,8 @@ namespace AsepriteImporter
 
         public Texture2D GenerateAtlas(Texture2D[] sprites, out AseFileSpriteImportData[] spriteImportData, bool baseTwo = true)
         {
-            int cols, rows;
+            var cols = 0;
+            var rows = 0;
 
             CalculateColsRows(sprites.Length, spriteSize, out cols, out rows);
 
@@ -60,20 +58,20 @@ namespace AsepriteImporter
             {
                 for (var col = 0; col < cols; ++col)
                 {
-                    Rect spriteRect = new Rect(col * spriteSize.x, atlas.height - ((row + 1) * spriteSize.y), spriteSize.x, spriteSize.y);
-                    Color[] colors = sprites[index].GetPixels();
+                    var spriteRect = new Rect(col * spriteSize.x, atlas.height - ((row + 1) * spriteSize.y), spriteSize.x, spriteSize.y);
+                    var colors = sprites[index].GetPixels();
+
                     atlas.SetPixels((int)spriteRect.x, (int)spriteRect.y, (int)spriteRect.width, (int)spriteRect.height, sprites[index].GetPixels());
                     atlas.Apply();
 
-                    List<Vector2[]> outline = GenerateRectOutline(spriteRect);
+                    var outline = GenerateRectOutline(spriteRect);
+
                     spriteImportData[index] = CreateSpriteImportData(index.ToString(), spriteRect, outline);
 
-                    index++;
-                    if (index >= sprites.Length)
-                        break;
+                    if (++index >= sprites.Length) break;
                 }
-                if (index >= sprites.Length)
-                    break;
+
+                if (index >= sprites.Length) break;
             }
 
             return atlas;
@@ -81,7 +79,7 @@ namespace AsepriteImporter
 
         public static List<Vector2Int[]> GenerateRectOutline(RectInt rect)
         {
-            List<Vector2Int[]> outline = new List<Vector2Int[]>();
+            var outline = new List<Vector2Int[]>();
 
             outline.Add(new Vector2Int[] { new Vector2Int(rect.x, rect.y), new Vector2Int(rect.x, rect.yMax) });
             outline.Add(new Vector2Int[] { new Vector2Int(rect.x, rect.yMax), new Vector2Int(rect.xMax, rect.yMax) });
@@ -90,10 +88,10 @@ namespace AsepriteImporter
 
             return outline;
         }
-        
+
         public static List<Vector2[]> GenerateRectOutline(Rect rect)
         {
-            List<Vector2[]> outline = new List<Vector2[]>();
+            var outline = new List<Vector2[]>();
 
             outline.Add(new Vector2[] { new Vector2(rect.x, rect.y), new Vector2(rect.x, rect.yMax) });
             outline.Add(new Vector2[] { new Vector2(rect.x, rect.yMax), new Vector2(rect.xMax, rect.yMax) });
@@ -104,8 +102,7 @@ namespace AsepriteImporter
         }
 
         AseFileSpriteImportData CreateSpriteImportData(string name, Rect rect, List<Vector2[]> outline)
-        {
-            return new AseFileSpriteImportData()
+            => new AseFileSpriteImportData()
             {
                 alignment = SpriteAlignment.Center,
                 border = Vector4.zero,
@@ -116,27 +113,24 @@ namespace AsepriteImporter
                 spriteID = GUID.Generate().ToString(),
                 tessellationDetail = 0
             };
-        }
 
         static void CalculateColsRows(int spritesCount, Vector2 spriteSize, out int cols, out int rows)
         {
-            float minDifference = float.MaxValue;
+            var minDifference = float.MaxValue;
             cols = spritesCount;
             rows = 1;
-            
-            float width = spriteSize.x * cols;
-            float height = spriteSize.y * rows;
 
-            
-            
+            var width = spriteSize.x * cols;
+            var height = spriteSize.y * rows;
+
             for (rows = 1; rows < spritesCount; ++rows)
             {
                 cols = Mathf.CeilToInt((float)spritesCount / rows);
-                
+
                 width = spriteSize.x * cols;
                 height = spriteSize.y * rows;
 
-                float difference = Mathf.Abs(width - height);
+                var difference = Mathf.Abs(width - height);
                 if (difference < minDifference)
                 {
                     minDifference = difference;
@@ -155,11 +149,7 @@ namespace AsepriteImporter
             var exponent = 0;
             var baseTwo = 0;
 
-            while (baseTwo < value)
-            {
-                baseTwo = (int)Math.Pow(2, exponent);
-                exponent++;
-            }
+            while (baseTwo < value) baseTwo = (int)Math.Pow(2, exponent++);
 
             return baseTwo;
         }

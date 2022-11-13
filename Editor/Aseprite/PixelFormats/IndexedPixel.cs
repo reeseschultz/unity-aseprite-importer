@@ -5,21 +5,17 @@ namespace Aseprite.PixelFormats
 {
     public class IndexedPixel : Pixel
     {
-        public byte Index { get; private set; }
+        public byte Index { get; private set; } = default;
 
         public IndexedPixel(Frame frame, byte index) : base(frame)
-        {
-            Index = index;
-        }
+            => Index = index;
 
         public override Color GetColor()
         {
-            PaletteChunk palette = Frame.File.GetChunk<PaletteChunk>();
+            var palette = Frame.File.GetChunk<PaletteChunk>();
 
-            if (palette != null)
-                return palette.GetColor(Index);
-            else
-                return Color.magenta;
+            if (palette != default) return palette.GetColor(Index);
+            else return Color.magenta;
         }
     }
 }

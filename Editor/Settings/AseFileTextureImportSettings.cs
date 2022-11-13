@@ -4,11 +4,10 @@ using System;
 
 namespace AsepriteImporter.Settings
 {
-
     [Serializable]
     public class AseFileTextureImportSettings
     {
-        public bool seamlessCubemap;
+        public bool seamlessCubemap = default;
 
         //     Mip map bias of the texture.
         public float mipmapBias = 0.5f;
@@ -17,20 +16,20 @@ namespace AsepriteImporter.Settings
         public TextureWrapMode wrapMode = TextureWrapMode.Clamp;
 
         //     Texture U coordinate wrapping mode.
-        public TextureWrapMode wrapModeU;
+        public TextureWrapMode wrapModeU = default;
 
         //     Texture V coordinate wrapping mode.
-        public TextureWrapMode wrapModeV;
+        public TextureWrapMode wrapModeV = default;
 
         //     Texture W coordinate wrapping mode for Texture3D.
-        public TextureWrapMode wrapModeW;
+        public TextureWrapMode wrapModeW = default;
 
         //     If the provided alpha channel is transparency, enable this to dilate the color
         //     to avoid filtering artifacts on the edges.
         public bool alphaIsTransparency = true;
 
         //     Sprite texture import mode.
-        public int spriteMode = (int) SpriteImportMode.Single;
+        public int spriteMode = (int)SpriteImportMode.Single;
 
         //     The number of pixels in the sprite that correspond to one unit in world space.
         public float spritePixelsPerUnit = 100;
@@ -40,7 +39,7 @@ namespace AsepriteImporter.Settings
         //     to specify the value per sprite. Valid values are in the range [0-1], with higher
         //     values generating a tighter mesh. A default of -1 will allow Unity to determine
         //     the value automatically.
-        public float spriteTessellationDetail;
+        public float spriteTessellationDetail = default;
 
         //     The number of blank pixels to leave between the edge of the graphic and the mesh.
         public uint spriteExtrude = 1;
@@ -50,7 +49,7 @@ namespace AsepriteImporter.Settings
         public SpriteMeshType spriteMeshType = SpriteMeshType.Tight;
 
         //     Edge-relative alignment of the sprite graphic.
-        public int spriteAlignment = (int) SpriteAlignment.Center;
+        public int spriteAlignment = (int)SpriteAlignment.Center;
 
         //     Pivot point of the Sprite relative to its graphic's rectangle.
         public Vector2 spritePivot = Vector2.zero;
@@ -82,20 +81,20 @@ namespace AsepriteImporter.Settings
         public TextureImporterMipFilter mipmapFilter;
 
         //     Generate mip maps for the texture?
-        public bool mipmapEnabled = false;
+        public bool mipmapEnabled = default;
 
         //     Is texture storing color data?
         public bool sRGBTexture = true;
 
         //     Fade out mip levels to gray color?
-        public bool fadeOut = false;
+        public bool fadeOut = default;
 
         //     Enable this to avoid colors seeping out to the edge of the lower Mip levels.
         //     Used for light cookies.
-        public bool borderMipmap;
+        public bool borderMipmap = default;
 
         //     Enables or disables coverage-preserving alpha MIP mapping.
-        public bool mipMapsPreserveCoverage;
+        public bool mipMapsPreserveCoverage = default;
 
         //     Mip level where texture begins to fade out to gray.
         public int mipmapFadeDistanceStart = 1;
@@ -104,45 +103,42 @@ namespace AsepriteImporter.Settings
         public float alphaTestReferenceValue = 1f;
 
         //     Convert heightmap to normal map?
-        public bool convertToNormalMap;
-
+        public bool convertToNormalMap = default;
+ 
         //     Amount of bumpyness in the heightmap.
-        public float heightmapScale;
+        public float heightmapScale = default;
 
         //     Normal map filtering mode.
-        public TextureImporterNormalFilter normalMapFilter;
+        public TextureImporterNormalFilter normalMapFilter = default;
 
         //     Select how the alpha of the imported texture is generated.
         public TextureImporterAlphaSource alphaSource = TextureImporterAlphaSource.FromInput;
 
         //     Color or Alpha component TextureImporterType|Single Channel Textures uses.
-        public TextureImporterSingleChannelComponent singleChannelComponent;
+        public TextureImporterSingleChannelComponent singleChannelComponent = default;
 
         //     Is texture data readable from scripts.
-        public bool readable = false;
+        public bool readable = default;
 
         //     Enable mipmap streaming for this texture.
-        public bool streamingMipmaps;
+        public bool streamingMipmaps = default;
 
         //     Relative priority for this texture when reducing memory size in order to hit
         //     the memory budget.
-        public int streamingMipmapsPriority;
+        public int streamingMipmapsPriority = default;
 
         //     Scaling mode for non power of two textures.
-        public TextureImporterNPOTScale npotScale;
+        public TextureImporterNPOTScale npotScale = default;
 
         //     Cubemap generation mode.
-        public TextureImporterGenerateCubemap generateCubemap;
+        public TextureImporterGenerateCubemap generateCubemap = default;
 
         //     Mip level where texture is faded out to gray completely.
         public int mipmapFadeDistanceEnd = 3;
 
-
-
-
         public TextureImporterSettings ToImporterSettings()
         {
-            TextureImporterSettings settings = new TextureImporterSettings()
+            var settings = new TextureImporterSettings()
             {
                 seamlessCubemap = seamlessCubemap,
                 mipmapBias = mipmapBias,
@@ -235,11 +231,10 @@ namespace AsepriteImporter.Settings
 
         public void ApplyTextureType(TextureImporterType textureType)
         {
-            TextureImporterSettings settings = ToImporterSettings();
+            var settings = ToImporterSettings();
             settings.ApplyTextureType(textureType);
 
             Apply(settings);
         }
-
     }
 }

@@ -10,15 +10,15 @@ namespace Aseprite
     {
         static public string MetaDataChar = "@";
 
-        public MetaDataType Type { get; private set; }
-        //Average position per frames
-        public Dictionary<int, Vector2> Transforms { get; private set; }
-        public List<string> Args { get; private set; }
+        public MetaDataType Type { get; private set; } = default;
+        public Dictionary<int, Vector2> Transforms { get; private set; } = default; // average position per frames
+        public List<string> Args { get; private set; } = default;
 
         public MetaData(string layerName)
         {
             var regex = new Regex("@transform\\(\"(.*)\"\\)");
             var match = regex.Match(layerName);
+
             if (match.Success)
             {
                 Type = MetaDataType.TRANSFORM;
@@ -27,7 +27,9 @@ namespace Aseprite
                 Transforms = new Dictionary<int, Vector2>();
             }
             else
+            {
                 Debug.LogWarning($"Unsupported aseprite metadata {layerName}");
+            }
         }
     }
 }

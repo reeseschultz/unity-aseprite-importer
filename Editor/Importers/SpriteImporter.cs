@@ -12,15 +12,14 @@ using UnityEditor.AssetImporters;
 using UnityEditor.Experimental.AssetImporters;
 #endif
 
-
 namespace AsepriteImporter
 {
     public abstract class SpriteImporter
     {
         const int UPDATE_LIMIT = 300;
 
-        int updates;
-        AseFileImporter importer;
+        int updates = default;
+        AseFileImporter importer = default;
 
         protected AseFileImportSettings Settings => importer.settings;
         protected AseFileTextureImportSettings TextureImportSettings => importer.textureImporterSettings;
@@ -29,13 +28,13 @@ namespace AsepriteImporter
         {
             get => importer.animationSettings;
             set => importer.animationSettings = value;
-        } 
+        }
 
         protected AseFileImporter Importer => importer;
 
-        protected AssetImportContext Context { get; private set; }
-        protected AseFile AsepriteFile { get; private set; }
-        protected string AssetPath { get; private set; }
+        protected AssetImportContext Context { get; private set; } = default;
+        protected AseFile AsepriteFile { get; private set; } = default;
+        protected string AssetPath { get; private set; } = default;
 
         protected Texture2D Texture
         {
@@ -56,12 +55,10 @@ namespace AsepriteImporter
         }
 
         protected SpriteImporter(AseFileImporter importer)
-        {
-            this.importer = importer;
-        }
+            => this.importer = importer;
 
-        public virtual Sprite[] Sprites { get; }
-        
+        public virtual Sprite[] Sprites { get; } = default;
+
         public void Import(AssetImportContext ctx, AseFile file)
         {
             Context = ctx;
@@ -69,7 +66,7 @@ namespace AsepriteImporter
             AsepriteFile = file;
             AssetPath = ctx.assetPath;
             OnImport();
-            
+
             updates = UPDATE_LIMIT;
             EditorApplication.update += OnEditorUpdate;
         }
@@ -79,33 +76,22 @@ namespace AsepriteImporter
         void OnEditorUpdate()
         {
             AssetDatabase.Refresh();
+
             var done = false;
-            if (OnUpdate()) {
-                done = true;
-            } else {
-                updates--;
-                if (updates <= 0) {
-                    done = true;
-                }
-            }
 
-            if (done) {
-                EditorApplication.update -= OnEditorUpdate;
-            }
+            if (OnUpdate() || --updates <= 0) done = true;
+
+            if (done) EditorApplication.update -= OnEditorUpdate;
         }
-        
+
         protected virtual bool OnUpdate()
-        {
-            return true;
-        }
-        
-        public virtual void Apply()
-        {
-            throw new NotImplementedException();
-        }
+            => true;
 
-        public virtual SpriteImportMode spriteImportMode { get; }
-        public virtual float pixelsPerUnit { get; }
-        public virtual Object targetObject { get; }
+        public virtual void Apply()
+            => throw new NotImplementedException();
+
+        public virtual SpriteImportMode spriteImportMode { get; } = default;
+        public virtual float pixelsPerUnit { get; } = default;
+        public virtual Object targetObject { get; } = default;
     }
 }

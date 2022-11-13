@@ -4,13 +4,10 @@ namespace Aseprite
 {
     public abstract class Pixel
     {
-        protected Frame Frame = null;
+        protected Frame Frame = default;
         public abstract Color GetColor();
 
         public Pixel(Frame frame)
-        {
-            Frame = frame;
-        }
+            => Frame = frame;
     }
 }
-

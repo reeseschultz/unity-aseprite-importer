@@ -1,7 +1,6 @@
 ﻿using Aseprite.PixelFormats;
 using System.IO;
 
-
 namespace Aseprite.Chunks
 {
     public enum CelType : ushort
@@ -13,16 +12,14 @@ namespace Aseprite.Chunks
 
     public class CelChunk : Chunk
     {
-        public ushort LayerIndex { get; private set; }
-        public short X { get; private set; }
-        public short Y { get; private set; }
-        public virtual ushort Width { get; protected set; }
-        public virtual ushort Height { get; protected set; }
-        public byte Opacity { get; set; }
-        public CelType CelType { get; set; }
-
-        public virtual Pixel[] RawPixelData { get; protected set; }
-
+        public ushort LayerIndex { get; private set; } = default;
+        public short X { get; private set; } = default;
+        public short Y { get; private set; } = default;
+        public virtual ushort Width { get; protected set; } = default;
+        public virtual ushort Height { get; protected set; } = default;
+        public byte Opacity { get; set; } = default;
+        public CelType CelType { get; set; } = default;
+        public virtual Pixel[] RawPixelData { get; protected set; } = default;
 
         public CelChunk(uint length, ushort layerIndex, short x, short y, byte opacity, CelType type) : base(length, ChunkType.Cel)
         {
@@ -35,31 +32,32 @@ namespace Aseprite.Chunks
 
         protected void ReadPixelData(BinaryReader reader, Frame frame)
         {
-            int size = Width * Height;
+            var size = Width * Height;
+
             RawPixelData = new Pixel[size];
 
             switch (frame.File.Header.ColorDepth)
             {
                 case ColorDepth.RGBA:
-                    for (int i = 0; i < size; i++)
+                    for (var i = 0; i < size; ++i)
                     {
-                        byte[] color = reader.ReadBytes(4);
+                        var color = reader.ReadBytes(4);
 
                         RawPixelData[i] = new RGBAPixel(frame, color);
                     }
                     break;
                 case ColorDepth.Grayscale:
-                    for (int i = 0; i < size; i++)
+                    for (var i = 0; i < size; ++i)
                     {
-                        byte[] color = reader.ReadBytes(2);
+                        var color = reader.ReadBytes(2);
 
                         RawPixelData[i] = new GrayscalePixel(frame, color);
                     }
                     break;
                 case ColorDepth.Indexed:
-                    for (int i = 0; i < size; i++)
+                    for (var i = 0; i < size; ++i)
                     {
-                        byte color = reader.ReadByte();
+                        var color = reader.ReadByte();
 
                         RawPixelData[i] = new IndexedPixel(frame, color);
                     }
@@ -67,18 +65,15 @@ namespace Aseprite.Chunks
             }
         }
 
-
-
         public static CelChunk ReadCelChunk(uint length, BinaryReader reader, Frame frame)
         {
-            ushort layerIndex = reader.ReadUInt16();
-            short x = reader.ReadInt16();
-            short y = reader.ReadInt16();
-            byte opacity = reader.ReadByte();
-            CelType type = (CelType)reader.ReadUInt16();
+            var layerIndex = reader.ReadUInt16();
+            var x = reader.ReadInt16();
+            var y = reader.ReadInt16();
+            var opacity = reader.ReadByte();
+            var type = (CelType)reader.ReadUInt16();
 
             reader.ReadBytes(7); // For Future
-
 
             switch (type)
             {
@@ -90,9 +85,7 @@ namespace Aseprite.Chunks
                     return new CompressedCelChunk(length, layerIndex, x, y, opacity, frame, reader);
             }
 
-
-            return null;
+            return default;
         }
-
     }
 }

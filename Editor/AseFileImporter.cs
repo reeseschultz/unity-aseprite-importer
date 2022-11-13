@@ -19,32 +19,37 @@ using UnityEditor.AssetImporters;
 using UnityEditor.Experimental.AssetImporters;
 #endif
 
-
-
-namespace AsepriteImporter {
-    [ScriptedImporter(1, new[] {"ase", "aseprite"})]
-    public class AseFileImporter : ScriptedImporter, ISpriteEditorDataProvider {
+namespace AsepriteImporter
+{
+    [ScriptedImporter(1, new[] { "ase", "aseprite" })]
+    public class AseFileImporter : ScriptedImporter, ISpriteEditorDataProvider
+    {
         [SerializeField] public AseFileImportSettings settings = new AseFileImportSettings();
         [SerializeField] public AseFileTextureImportSettings textureImporterSettings = new AseFileTextureImportSettings();
         [SerializeField] public AseFileAnimationSettings[] animationSettings = new AseFileAnimationSettings[0];
-        
-        [SerializeField] internal Texture2D texture;
-        [SerializeField] internal AseFileSpriteImportData[] spriteImportData;
-        [SerializeField] internal SpriteRect[] spriteRects;
-        
-        [SerializeField] internal int selectedImporter;
+
+        [SerializeField] internal Texture2D texture = default;
+        [SerializeField] internal AseFileSpriteImportData[] spriteImportData = default;
+        [SerializeField] internal SpriteRect[] spriteRects = default;
+
+        [SerializeField] internal int selectedImporter = default;
 
         List<ImporterVariant> importerVariants = new List<ImporterVariant>();
 
         public Texture2D Texture => texture;
         public AseFileSpriteImportData[] SpriteImportData => spriteImportData;
-        
+
         public ImporterVariant SelectedImporter
         {
             get
             {
-                if (selectedImporter >= 0 && selectedImporter < importerVariants.Count)
+                if (
+                    selectedImporter >= 0 &&
+                    selectedImporter < importerVariants.Count
+                )
+                {
                     return importerVariants[selectedImporter];
+                }
                 else
                 {
                     selectedImporter = 0;
@@ -73,9 +78,8 @@ namespace AsepriteImporter {
         {
             get
             {
-                string[] names = new string[importerVariants.Count];
-                for (int i = 0; i < names.Length; ++i)
-                    names[i] = importerVariants[i].Name;
+                var names = new string[importerVariants.Count];
+                for (var i = 0; i < names.Length; ++i) names[i] = importerVariants[i].Name;
 
                 return names;
             }
@@ -85,17 +89,17 @@ namespace AsepriteImporter {
         {
             var generatedImporter = new ImporterVariant("Generated (Subfolders)", new GeneratedSpriteImporter(this), new GeneratedTileImporter(this), new GeneratedImporterEditor());
             var bundledImporter = new ImporterVariant("Bundled (preview)", new BundledSpriteImporter(this), new GeneratedTileImporter(this), new BundledImporterEditor());
-            
+
             importerVariants.Add(generatedImporter);
             importerVariants.Add(bundledImporter);
         }
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            texture = null;
-            
+            texture = default;
+
             name = GetFileName(ctx.assetPath);
-            AseFile file = ReadAseFile(ctx.assetPath);
+            var file = ReadAseFile(ctx.assetPath);
 
             CurrentImporter.Import(ctx, file);
 
@@ -104,48 +108,47 @@ namespace AsepriteImporter {
 
         void CleanUp()
         {
-            bool clearSprites = CurrentImporter.Sprites == null;
-            
+            var clearSprites = CurrentImporter.Sprites == default;
+
             foreach (var animationSetting in animationSettings)
             {
-                for (int i = 0; i < animationSetting.sprites.Length; ++i)
+                for (var i = 0; i < animationSetting.sprites.Length; ++i)
                 {
                     if (clearSprites)
                     {
-                        animationSetting.sprites[i] = null;
+                        animationSetting.sprites[i] = default;
                         continue;
                     }
-                    
+
                     if (!CurrentImporter.Sprites.Contains(animationSetting.sprites[i]))
-                        animationSetting.sprites[i] = null;
+                        animationSetting.sprites[i] = default;
                 }
             }
         }
 
-        string GetFileName(string assetPath) {
+        string GetFileName(string assetPath)
+        {
             var parts = assetPath.Split('/');
             var filename = parts[parts.Length - 1];
             return filename.Substring(0, filename.LastIndexOf('.'));
         }
-     
-        static AseFile ReadAseFile(string assetPath) {
+
+        static AseFile ReadAseFile(string assetPath)
+        {
             var fileStream = new FileStream(assetPath, FileMode.Open, FileAccess.Read);
             var aseFile = new AseFile(fileStream);
             fileStream.Close();
+
             return aseFile;
         }
-        
-        
-        
-        #region ISpriteEditorDataProvider implementation
 
+        #region ISpriteEditorDataProvider implementation
         AsepriteTextureDataProvider textureDataProvider;
         AsepriteOutlineDataProvider outlineDataProvider;
-        
-        
+
         public SpriteRect[] GetSpriteRects()
         {
-            List<SpriteRect> spriteRects = new List<SpriteRect>();
+            var spriteRects = new List<SpriteRect>();
 
             foreach (AseFileSpriteImportData importData in SpriteImportData)
             {
@@ -161,18 +164,15 @@ namespace AsepriteImporter {
             }
 
             this.spriteRects = spriteRects.ToArray();
+
             return this.spriteRects;
         }
 
         public void SetSpriteRects(SpriteRect[] spriteRects)
-        {
-            this.spriteRects = spriteRects;
-        }
+            => this.spriteRects = spriteRects;
 
         public void Apply()
-        {
-            CurrentImporter.Apply();
-        }
+            => CurrentImporter.Apply();
 
         public void InitSpriteEditorDataProvider()
         {
@@ -182,45 +182,29 @@ namespace AsepriteImporter {
 
         public T GetDataProvider<T>() where T : class
         {
-            if (typeof(T) == typeof(ITextureDataProvider))
-                return textureDataProvider as T;
+            if (typeof(T) == typeof(ITextureDataProvider)) return textureDataProvider as T;
+            else if (typeof(T) == typeof(ISpriteOutlineDataProvider)) return outlineDataProvider as T;
+            else if (typeof(T) == typeof(ISpriteEditorDataProvider)) return this as T;
 
-            if (typeof(T) == typeof(ISpriteOutlineDataProvider))
-                return outlineDataProvider as T;
-
-            if (typeof(T) == typeof(ISpriteEditorDataProvider))
-                return this as T;
-
-            Debug.Log(typeof(T).Name + " not found");
-            return null;
+            return default;
         }
 
         public bool HasDataProvider(Type type)
         {
+            if (type == typeof(ITextureDataProvider)) return true;
+            else if (type == typeof(ISpriteOutlineDataProvider)) return true;
 
-            if (type == typeof(ITextureDataProvider))
-                return true;
-
-            if (type == typeof(ISpriteOutlineDataProvider))
-                return true;
-
-            //Debug.Log("Does not support" + type.Name);
             return false;
         }
 
         public SpriteImportMode spriteImportMode => CurrentImporter.spriteImportMode;
         public float pixelsPerUnit => CurrentImporter.pixelsPerUnit;
         public Object targetObject => CurrentImporter.targetObject;
-
         #endregion
-        
-        
+
         GUID ConvertStringToGUID(string guidString)
         {
-            if (!GUID.TryParse(guidString, out GUID guid))
-            {
-                guid = GUID.Generate();
-            }
+            if (!GUID.TryParse(guidString, out GUID guid)) guid = GUID.Generate();
 
             return guid;
         }

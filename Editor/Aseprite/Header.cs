@@ -1,6 +1,5 @@
 ﻿using System.IO;
 
-
 namespace Aseprite
 {
     public enum ColorDepth : ushort
@@ -12,29 +11,27 @@ namespace Aseprite
 
     public class Header
     {
+        public uint FileSize { get; private set; } = default;
+        public ushort MagicNumber { get; private set; } = default;
+        public ushort Frames { get; private set; } = default;
+        public ushort Width { get; private set; } = default;
+        public ushort Height { get; private set; } = default;
+        public ColorDepth ColorDepth { get; private set; } = default;
+        public uint Flags { get; private set; } = default;
+        public ushort Speed { get; private set; } = default;
 
-        public uint FileSize { get; private set; }
-        public ushort MagicNumber { get; private set; }
-        public ushort Frames { get; private set; }
-        public ushort Width { get; private set; }
-        public ushort Height { get; private set; }
-        public ColorDepth ColorDepth { get; private set; }
-        public uint Flags { get; private set; }
-        public ushort Speed { get; private set; }
+        public byte TransparentIndex { get; private set; } = default;
 
-        public byte TransparentIndex { get; private set; }
-
-        public ushort ColorCount { get; private set; }
-        public byte PixelWidth { get; private set; }
-        public byte PixelHeight { get; private set; }
+        public ushort ColorCount { get; private set; } = default;
+        public byte PixelWidth { get; private set; } = default;
+        public byte PixelHeight { get; private set; } = default;
 
         public Header(byte[] header)
         {
-            if (header.Length != 128)
-                return;
+            if (header.Length != 128) return;
 
-            Stream stream = new MemoryStream(header);
-            BinaryReader reader = new BinaryReader(stream);
+            var stream = new MemoryStream(header);
+            var reader = new BinaryReader(stream);
 
             FileSize = reader.ReadUInt32();         // File size
             MagicNumber = reader.ReadUInt16();      // Magic number (0xA5E0)
@@ -58,6 +55,5 @@ namespace Aseprite
 
             reader.ReadBytes(92);                   // For future
         }
-
     }
 }

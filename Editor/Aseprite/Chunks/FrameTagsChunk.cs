@@ -15,13 +15,13 @@ namespace Aseprite.Chunks
 
     public class FrameTag
     {
-        public ushort FrameFrom { get; private set; }
-        public ushort FrameTo { get; private set; }
-        public LoopAnimation Animation { get; private set; }
-        public Color TagColor { get; set; } // 3 Bytes
-        public string TagName { get; private set; } // 1 Extra Byte
+        public ushort FrameFrom { get; private set; } = default;
+        public ushort FrameTo { get; private set; } = default;
+        public LoopAnimation Animation { get; private set; } = default;
+        public Color TagColor { get; set; } = default; // 3 Bytes
+        public string TagName { get; private set; } = default; // 1 Extra Byte
 
-        byte[] ForFuture { get; set; } // 8 Bytes
+        byte[] ForFuture { get; set; } = default; // 8 Bytes
 
         public FrameTag(BinaryReader reader)
         {
@@ -30,12 +30,12 @@ namespace Aseprite.Chunks
             Animation = (LoopAnimation)reader.ReadByte();
             ForFuture = reader.ReadBytes(8);
 
-            byte[] colorBytes = reader.ReadBytes(3);
+            var colorBytes = reader.ReadBytes(3);
             TagColor = new Color((colorBytes[0] / 255f), (colorBytes[1] / 255f), (colorBytes[2] / 255f));
 
             reader.ReadByte(); // Extra byte (zero)
 
-            ushort nameLength = reader.ReadUInt16();
+            var nameLength = reader.ReadUInt16();
             TagName = Encoding.Default.GetString(reader.ReadBytes(nameLength));
         }
     }
@@ -44,7 +44,7 @@ namespace Aseprite.Chunks
     {
         public ushort TagCount { get; private set; }
         byte[] ForFuture { get; set; } // 8 Bytes
-        
+
         public List<FrameTag> Tags { get; private set; }
 
         public FrameTagsChunk(uint length, BinaryReader reader) : base(length, ChunkType.FrameTags)
@@ -54,10 +54,7 @@ namespace Aseprite.Chunks
 
             Tags = new List<FrameTag>();
 
-            for (int i = 0; i < TagCount; i++)
-            {
-                Tags.Add(new FrameTag(reader));
-            }
+            for (var i = 0; i < TagCount; ++i) Tags.Add(new FrameTag(reader));
         }
     }
 }

@@ -6,12 +6,10 @@ namespace AsepriteImporter.DataProviders
 {
     public class AsepriteTextureDataProvider : ITextureDataProvider
     {
-        readonly AseFileImporter aseFileImporter;
+        readonly AseFileImporter aseFileImporter = default;
 
         public AsepriteTextureDataProvider(AseFileImporter aseFileImporter)
-        {
-            this.aseFileImporter = aseFileImporter;
-        }
+            => this.aseFileImporter = aseFileImporter;
 
         public Texture2D texture => aseFileImporter.Texture;
 
@@ -20,10 +18,9 @@ namespace AsepriteImporter.DataProviders
         public Texture2D GetReadableTexture2D()
         {
             if (aseFileImporter.textureImporterSettings.spriteMode == (int)SpriteImportMode.Multiple)
-            {
                 return aseFileImporter.Texture;
-            }
-            return null;
+
+            return default;
         }
 
         public void GetTextureActualWidthAndHeight(out int width, out int height)

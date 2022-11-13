@@ -8,43 +8,40 @@ using UnityEditor.AssetImporters;
 using UnityEditor.Experimental.AssetImporters;
 #endif
 
-
 namespace AsepriteImporter.Data
 {
     [Serializable]
     public class AseFileSpriteImportData
     {
-        public string name;
+        public string name = default;
 
         //     Position and size of the Sprite in a given texture.
-        public Rect rect;
+        public Rect rect = default;
 
         //     Pivot value represented by SpriteAlignment.
-        public SpriteAlignment alignment;
+        public SpriteAlignment alignment = default;
 
         //     Pivot value represented in Vector2.
-        public Vector2 pivot;
+        public Vector2 pivot = default;
 
         //     Border value for the generated Sprite.
-        public Vector4 border;
+        public Vector4 border = default;
 
         //     Sprite Asset creation uses this outline when it generates the Mesh for the Sprite.
         //     If this is not given, SpriteImportData.tesselationDetail will be used to determine
         //     the mesh detail.
-        public List<Vector2[]> outline;
+        public List<Vector2[]> outline = default;
 
         //     Controls mesh generation detail. This value will be ignored if SpriteImportData.ouline
         //     is provided.
-        public float tessellationDetail;
+        public float tessellationDetail = default;
 
         //     An identifier given to a Sprite. Use this to identify which data was used to
         //     generate that Sprite.
-        public string spriteID;
-
+        public string spriteID = default;
 
         public SpriteImportData ToSpriteImportData()
-        {
-            return new SpriteImportData()
+            => new SpriteImportData()
             {
                 alignment = alignment,
                 border = border,
@@ -55,6 +52,5 @@ namespace AsepriteImporter.Data
                 spriteID = spriteID,
                 tessellationDetail = tessellationDetail
             };
-        }
     }
 }

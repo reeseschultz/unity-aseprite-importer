@@ -11,7 +11,7 @@ namespace Aseprite
         Cel = 0x2005,
         CelExtra = 0x2006,
         Mask = 0x2016, // DEPRECATED
-        Path = 0x2017 , // NEVER USED
+        Path = 0x2017, // NEVER USED
         FrameTags = 0x2018,
         Palette = 0x2019,
         UserData = 0x2020
@@ -21,9 +21,9 @@ namespace Aseprite
     {
         public const int HEADER_SIZE = 6;
 
-        protected Frame Frame = null;
-        public uint Length { get; private set; }
-        public ChunkType ChunkType { get; private set; }
+        protected Frame Frame = default;
+        public uint Length { get; private set; } = default;
+        public ChunkType ChunkType { get; private set; } = default;
 
         public Chunk(uint length, ChunkType type)
         {
@@ -33,8 +33,8 @@ namespace Aseprite
 
         public static Chunk ReadChunk(Frame frame, BinaryReader reader)
         {
-            uint length = reader.ReadUInt32();
-            ChunkType type = (ChunkType)reader.ReadUInt16();
+            var length = reader.ReadUInt32();
+            var type = (ChunkType)reader.ReadUInt16();
 
             switch (type)
             {
@@ -51,7 +51,8 @@ namespace Aseprite
             }
 
             reader.BaseStream.Position += length - Chunk.HEADER_SIZE;
-            return null;
+
+            return default;
         }
     }
 }
