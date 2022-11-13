@@ -85,17 +85,17 @@ namespace AsepriteImporter.Importers
 
             SpriteImportData = new AseFileSpriteImportData[]
             {
-                    new AseFileSpriteImportData()
-                    {
-                        alignment = SpriteAlignment.Center,
-                        border = Vector4.zero,
-                        name = name,
-                        outline = SpriteAtlasBuilder.GenerateRectOutline(spriteRect),
-                        pivot = new Vector2(0.5f, 0.5f),
-                        rect = spriteRect,
-                        spriteID = GUID.Generate().ToString(),
-                        tessellationDetail = 0
-                    }
+                new AseFileSpriteImportData()
+                {
+                    alignment = SpriteAlignment.Center,
+                    border = Vector4.zero,
+                    name = name,
+                    outline = SpriteAtlasBuilder.GenerateRectOutline(spriteRect),
+                    pivot = new Vector2(0.5f, 0.5f),
+                    rect = spriteRect,
+                    spriteID = GUID.Generate().ToString(),
+                    tessellationDetail = 0
+                }
             };
 
             AnimationSettings = default;
@@ -107,17 +107,17 @@ namespace AsepriteImporter.Importers
 
             return new AseFileSpriteImportData[]
             {
-                    new AseFileSpriteImportData()
-                    {
-                        alignment = SpriteAlignment.Center,
-                        border = Vector4.zero,
-                        name = name,
-                        outline = SpriteAtlasBuilder.GenerateRectOutline(spriteRect),
-                        pivot = new Vector2(0.5f, 0.5f),
-                        rect = spriteRect,
-                        spriteID = GUID.Generate().ToString(),
-                        tessellationDetail = 0
-                    }
+                new AseFileSpriteImportData()
+                {
+                    alignment = SpriteAlignment.Center,
+                    border = Vector4.zero,
+                    name = name,
+                    outline = SpriteAtlasBuilder.GenerateRectOutline(spriteRect),
+                    pivot = new Vector2(0.5f, 0.5f),
+                    rect = spriteRect,
+                    spriteID = GUID.Generate().ToString(),
+                    tessellationDetail = 0
+                }
             };
         }
 

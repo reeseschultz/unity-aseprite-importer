@@ -7,7 +7,15 @@ namespace AsepriteImporter.Editors
     {
         readonly string[] spritePivotOptions =
         {
-            "Center", "Top Left", "Top", "Top Right", "Left", "Right", "Bottom Left", "Bottom", "Bottom Right", "Custom"
+            "Center",
+            "Top Left",
+            "Top",
+            "Top Right",
+            "Left", "Right",
+            "Bottom Left",
+            "Bottom",
+            "Bottom Right",
+            "Custom"
         };
 
         bool customSpritePivot = default;
@@ -27,20 +35,15 @@ namespace AsepriteImporter.Editors
                 {
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.PropertyField(transparentColor);
-                    if (GUILayout.Button("Reset"))
-                    {
-                        transparentColor.colorValue = Color.magenta;
-                    }
+
+                    if (GUILayout.Button("Reset")) transparentColor.colorValue = Color.magenta;
 
                     EditorGUILayout.EndHorizontal();
                 }
 
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "pixelsPerUnit"));
 
-                if (ImportType == AseFileImportType.Sprite)
-                {
-                    PivotPopup("Pivot");
-                }
+                if (ImportType == AseFileImportType.Sprite) PivotPopup("Pivot");
 
                 --EditorGUI.indentLevel;
             }
@@ -62,9 +65,7 @@ namespace AsepriteImporter.Editors
                 animType = (AseAnimatorType)EditorGUILayout.EnumPopup("Animator Type", animType);
 
                 if (animType == AseAnimatorType.AnimatorOverrideController)
-                {
                     EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "baseAnimator"));
-                }
 
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "buildAtlas"));
 
@@ -95,10 +96,9 @@ namespace AsepriteImporter.Editors
 
                     EditorGUI.BeginChangeCheck();
                     tileNameType = (TileNameType)EditorGUILayout.EnumPopup("TileNameType", tileNameType);
+
                     if (EditorGUI.EndChangeCheck())
-                    {
                         tileNameTypeProperty.enumValueIndex = (int)tileNameType;
-                    }
 
                     --EditorGUI.indentLevel;
                 }

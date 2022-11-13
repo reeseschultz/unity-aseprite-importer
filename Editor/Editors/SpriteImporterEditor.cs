@@ -19,7 +19,7 @@ namespace AsepriteImporter.Editors
 
         AseFileImporterEditor baseEditor = default;
 
-        protected readonly Dictionary<string, bool> foldoutStates = new Dictionary<string, bool>();
+        protected readonly Dictionary<string, bool> foldoutStates = new();
         AseFileImporter importer = default;
 
         public AseFileImporter Importer => importer;

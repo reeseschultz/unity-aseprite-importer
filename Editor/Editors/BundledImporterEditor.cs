@@ -17,7 +17,7 @@ namespace AsepriteImporter.Editors
         protected override void OnInspectorGUI()
         {
             if (Importer.textureImporterSettings == default)
-                Importer.textureImporterSettings = new AseFileTextureImportSettings();
+                Importer.textureImporterSettings = new();
 
             activeTab = GUILayout.Toolbar(activeTab, editorTabs);
 

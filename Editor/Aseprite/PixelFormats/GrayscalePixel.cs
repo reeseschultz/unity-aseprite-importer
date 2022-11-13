@@ -11,8 +11,8 @@ namespace Aseprite.PixelFormats
 
         public override Color GetColor()
         {
-            float value = (float)Color[0] / 255;
-            float alpha = (float)Color[1] / 255;
+            var value = (float)Color[0] / 255;
+            var alpha = (float)Color[1] / 255;
 
             return new Color(value, value, value, alpha);
         }

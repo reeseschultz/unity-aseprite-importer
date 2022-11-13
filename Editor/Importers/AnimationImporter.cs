@@ -24,7 +24,7 @@ namespace AsepriteImporter.Importers
             {
                 var frames = frameTag.FrameTo - frameTag.FrameFrom + 1;
 
-                AseFileAnimationSettings setting = new AseFileAnimationSettings(frameTag.TagName)
+                var setting = new AseFileAnimationSettings(frameTag.TagName)
                 {
                     about = GetAnimationAbout(frameTag),
                     loopTime = true,

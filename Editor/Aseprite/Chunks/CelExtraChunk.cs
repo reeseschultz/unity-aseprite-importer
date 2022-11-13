@@ -4,11 +4,11 @@ namespace Aseprite.Chunks
 {
     public class CelExtraChunk : Chunk
     {
-        public uint Flags { get; private set; }
-        public float PreciseX { get; private set; }
-        public float PreciseY { get; private set; }
-        public float Width { get; private set; }
-        public float Height { get; private set; }
+        public uint Flags { get; private set; } = default;
+        public float PreciseX { get; private set; } = default;
+        public float PreciseY { get; private set; } = default;
+        public float Width { get; private set; } = default;
+        public float Height { get; private set; } = default;
 
         public CelExtraChunk(uint length, BinaryReader reader) : base(length, ChunkType.CelExtra)
         {

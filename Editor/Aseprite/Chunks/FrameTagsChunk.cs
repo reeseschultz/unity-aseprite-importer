@@ -12,7 +12,6 @@ namespace Aseprite.Chunks
         PingPong = 2,
     }
 
-
     public class FrameTag
     {
         public ushort FrameFrom { get; private set; } = default;

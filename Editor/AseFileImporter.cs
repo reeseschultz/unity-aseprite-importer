@@ -24,8 +24,8 @@ namespace AsepriteImporter
     [ScriptedImporter(1, new[] { "ase", "aseprite" })]
     public class AseFileImporter : ScriptedImporter, ISpriteEditorDataProvider
     {
-        [SerializeField] public AseFileImportSettings settings = new AseFileImportSettings();
-        [SerializeField] public AseFileTextureImportSettings textureImporterSettings = new AseFileTextureImportSettings();
+        [SerializeField] public AseFileImportSettings settings = new();
+        [SerializeField] public AseFileTextureImportSettings textureImporterSettings = new();
         [SerializeField] public AseFileAnimationSettings[] animationSettings = new AseFileAnimationSettings[0];
 
         [SerializeField] internal Texture2D texture = default;
@@ -34,7 +34,7 @@ namespace AsepriteImporter
 
         [SerializeField] internal int selectedImporter = default;
 
-        List<ImporterVariant> importerVariants = new List<ImporterVariant>();
+        List<ImporterVariant> importerVariants = new();
 
         public Texture2D Texture => texture;
         public AseFileSpriteImportData[] SpriteImportData => spriteImportData;
@@ -130,6 +130,7 @@ namespace AsepriteImporter
         {
             var parts = assetPath.Split('/');
             var filename = parts[parts.Length - 1];
+
             return filename.Substring(0, filename.LastIndexOf('.'));
         }
 
@@ -143,8 +144,8 @@ namespace AsepriteImporter
         }
 
         #region ISpriteEditorDataProvider implementation
-        AsepriteTextureDataProvider textureDataProvider;
-        AsepriteOutlineDataProvider outlineDataProvider;
+        AsepriteTextureDataProvider textureDataProvider = default;
+        AsepriteOutlineDataProvider outlineDataProvider = default;
 
         public SpriteRect[] GetSpriteRects()
         {

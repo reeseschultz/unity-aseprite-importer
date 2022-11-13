@@ -76,7 +76,7 @@ namespace Aseprite.Utils
 
                     b.a = b.a * opacity;
 
-                    c = ((1f - b.a) * a) + (b.a * b);
+                    c = ((1f - b.a) * a) + b.a * b;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -156,7 +156,7 @@ namespace Aseprite.Utils
                     if (a.b < 0.5) c.b = 2f * a.b * b.b;
                     else c.b = 1f - 2f * (1f - b.b) * (1f - a.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -184,7 +184,7 @@ namespace Aseprite.Utils
                     c.g = Mathf.Min(a.g, b.g);
                     c.b = Mathf.Min(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -212,7 +212,7 @@ namespace Aseprite.Utils
                     c.g = Lighten(a.g, b.g);
                     c.b = Lighten(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -240,7 +240,7 @@ namespace Aseprite.Utils
                     c.g = ColorDodge(a.g, b.g);
                     c.b = ColorDodge(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -268,7 +268,7 @@ namespace Aseprite.Utils
                     c.g = ColorBurn(a.g, b.g);
                     c.b = ColorBurn(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -296,7 +296,7 @@ namespace Aseprite.Utils
                     c.g = HardLight(a.g, b.g);
                     c.b = HardLight(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -324,7 +324,7 @@ namespace Aseprite.Utils
                     c.g = SoftLight(a.g, b.g);
                     c.b = SoftLight(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -352,7 +352,7 @@ namespace Aseprite.Utils
                     c.g = Difference(a.g, b.g);
                     c.b = Difference(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -380,7 +380,7 @@ namespace Aseprite.Utils
                     c.g = Exclusion(a.g, b.g);
                     c.b = Exclusion(a.b, b.b);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -409,7 +409,7 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = SetLum(SetSat(b, s), l);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -437,7 +437,7 @@ namespace Aseprite.Utils
 
                     var c = SetLum(SetSat(a, s), l);
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -461,7 +461,7 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = SetLum(b, Lum(a));
 
-                    c = ((1f - b.a) * a) + (b.a * c);
+                    c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -485,7 +485,7 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = SetLum(a, Lum(b));
 
-                    c = ((1f - b.a) * a) + (b.a * c); ;
+                    c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -509,7 +509,7 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = a + b;
 
-                    c = ((1f - b.a) * a) + (b.a * c); ;
+                    c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -533,7 +533,7 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = a - b;
 
-                    c = ((1f - b.a) * a) + (b.a * c); ;
+                    c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
                     newLayer.SetPixel(x, y, c);
@@ -637,10 +637,10 @@ namespace Aseprite.Utils
 
             if (max > min)
             {
-                var s_as_float = (float)s;
-                mid = ((mid - min) * s_as_float) / (max - min);
+                var sAsFloat = (float)s;
+                mid = ((mid - min) * sAsFloat) / (max - min);
                 c = SetComponent(c, cMid, (float)mid);
-                max = s_as_float;
+                max = sAsFloat;
                 c = SetComponent(c, cMax, (float)max);
             }
             else
