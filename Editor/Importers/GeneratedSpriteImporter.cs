@@ -155,6 +155,7 @@ namespace AsepriteImporter.Importers
             importer.spritePixelsPerUnit = Settings.pixelsPerUnit;
             importer.mipmapEnabled = false;
             importer.filterMode = FilterMode.Point;
+            importer.isReadable = TextureImportSettings.readable;
 
             var metaList = CreateMetaData(fileName);
             var oldProperties = AseSpritePostProcess.GetPhysicsShapeProperties(importer, metaList);

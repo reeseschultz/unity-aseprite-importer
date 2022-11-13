@@ -22,13 +22,11 @@ namespace AsepriteImporter.Editors
 
         protected override void OnInspectorGUI()
         {
-            var settings = "settings.";
-
             EditorGUILayout.LabelField("Texture Options", EditorStyles.boldLabel);
             {
                 ++EditorGUI.indentLevel;
-                var transparencyMode = SerializedObject.FindProperty(settings + "transparencyMode");
-                var transparentColor = SerializedObject.FindProperty(settings + "transparentColor");
+                var transparencyMode = SerializedObject.FindProperty(SettingsPath + "transparencyMode");
+                var transparentColor = SerializedObject.FindProperty(SettingsPath + "transparentColor");
 
                 EditorGUILayout.PropertyField(transparencyMode);
                 if (transparencyMode.intValue == (int)TransparencyMode.Mask)
@@ -41,9 +39,13 @@ namespace AsepriteImporter.Editors
                     EditorGUILayout.EndHorizontal();
                 }
 
-                EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "pixelsPerUnit"));
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "pixelsPerUnit"));
 
-                if (ImportType == AseFileImportType.Sprite) PivotPopup("Pivot");
+                if (ImportType == AseFileImportType.Sprite)
+                {
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
+                    PivotPopup("Pivot");
+                }
 
                 --EditorGUI.indentLevel;
             }
@@ -54,20 +56,20 @@ namespace AsepriteImporter.Editors
             {
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
-                var bindTypeProperty = SerializedObject.FindProperty(settings + "bindType");
+                var bindTypeProperty = SerializedObject.FindProperty(SettingsPath + "bindType");
                 var bindType = (AseAnimationBindType)bindTypeProperty.intValue;
 
                 EditorGUI.BeginChangeCheck();
                 bindType = (AseAnimationBindType)EditorGUILayout.EnumPopup("Bind Type", bindType);
 
-                var animTypeProperty = SerializedObject.FindProperty(settings + "animType");
+                var animTypeProperty = SerializedObject.FindProperty(SettingsPath + "animType");
                 var animType = (AseAnimatorType)animTypeProperty.intValue;
                 animType = (AseAnimatorType)EditorGUILayout.EnumPopup("Animator Type", animType);
 
                 if (animType == AseAnimatorType.AnimatorOverrideController)
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "baseAnimator"));
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "baseAnimator"));
 
-                EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "buildAtlas"));
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "buildAtlas"));
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -84,14 +86,14 @@ namespace AsepriteImporter.Editors
                 {
                     ++EditorGUI.indentLevel;
 
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "tileSize"));
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tileSize"));
                     PivotPopup("Tile Pivot");
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(settings + "tileEmpty"),
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tileEmpty"),
                         new GUIContent("Empty Tile Behaviour",
                             "Behavior for empty tiles:\nKeep - Keep empty tiles\nIndex - Remove empty tiles, but still index them\nRemove - Remove empty tiles completely"));
 
                     // tileNameType
-                    var tileNameTypeProperty = SerializedObject.FindProperty(settings + "tileNameType");
+                    var tileNameTypeProperty = SerializedObject.FindProperty(SettingsPath + "tileNameType");
                     var tileNameType = (TileNameType)tileNameTypeProperty.enumValueIndex;
 
                     EditorGUI.BeginChangeCheck();
@@ -107,8 +109,8 @@ namespace AsepriteImporter.Editors
 
         void PivotPopup(string label)
         {
-            var alignmentProperty = SerializedObject.FindProperty("settings.spriteAlignment");
-            var pivotProperty = SerializedObject.FindProperty("settings.spritePivot");
+            var alignmentProperty = SerializedObject.FindProperty(SettingsPath + "spriteAlignment");
+            var pivotProperty = SerializedObject.FindProperty(SettingsPath + "spritePivot");
             var pivot = pivotProperty.vector2Value;
             var alignment = alignmentProperty.intValue;
 
@@ -162,7 +164,7 @@ namespace AsepriteImporter.Editors
             if (customSpritePivot)
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(SerializedObject.FindProperty("settings.spritePivot"),
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "spritePivot"),
                     new GUIContent(label));
                 --EditorGUI.indentLevel;
             }
