@@ -43,8 +43,9 @@ namespace AsepriteImporter.Editors
 
                 if (ImportType == AseFileImportType.Sprite)
                 {
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
                     PivotPopup("Pivot");
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "splitByLayers"));
                 }
 
                 --EditorGUI.indentLevel;

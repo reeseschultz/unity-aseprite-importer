@@ -35,8 +35,10 @@ namespace AsepriteImporter
 
             var directoryName = Path.GetDirectoryName(acePath) + "/" + fileName;
 
-            if (!AssetDatabase.IsValidFolder(directoryName))
-                AssetDatabase.CreateFolder(Path.GetDirectoryName(acePath), fileName);
+            if (!AssetDatabase.IsValidFolder(directoryName)) AssetDatabase.CreateFolder(
+                Path.GetDirectoryName(acePath),
+                fileName
+            );
 
             filePath = directoryName + "/" + fileName + ".png";
 

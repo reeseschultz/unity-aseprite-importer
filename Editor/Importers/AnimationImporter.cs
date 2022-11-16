@@ -18,7 +18,7 @@ namespace AsepriteImporter.Importers
         public AseFileAnimationSettings[] GetAnimationImportSettings()
         {
             var animationSettings = new List<AseFileAnimationSettings>();
-            var frameTags = aseFile.GetAnimations();
+            var frameTags = aseFile.GetFrameTags();
 
             foreach (var frameTag in frameTags)
             {
@@ -54,7 +54,7 @@ namespace AsepriteImporter.Importers
 
         public AnimationClip[] GenerateAnimations(string parentName, AseFileAnimationSettings[] animationSettings)
         {
-            var animations = aseFile.GetAnimations();
+            var animations = aseFile.GetFrameTags();
 
             if (animations.Length <= 0) return new AnimationClip[0];
 

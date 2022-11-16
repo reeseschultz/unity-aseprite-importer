@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -42,6 +43,13 @@ namespace AsepriteImporter
     }
 
     [Serializable]
+    public class SplitByLayers
+    {
+        [SerializeField] public string Name = default;
+        [SerializeField] public List<string> Layers = default;
+    }
+
+    [Serializable]
     public class AseFileImportSettings
     {
         [SerializeField] public AseFileImportType importType = AseFileImportType.Sprite;
@@ -57,6 +65,8 @@ namespace AsepriteImporter
         [SerializeField] public AseAnimatorType animType = AseAnimatorType.None;
         [SerializeField] public AnimatorController baseAnimator = default;
         [SerializeField] public bool buildAtlas = default;
+
+        [SerializeField] public List<SplitByLayers> splitByLayers = default;
 
         [SerializeField] public Vector2Int tileSize = new Vector2Int(16, 16);
         [SerializeField] public TileNameType tileNameType = TileNameType.Index;

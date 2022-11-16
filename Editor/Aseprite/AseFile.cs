@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEngine;
 
 namespace Aseprite
@@ -64,47 +62,36 @@ namespace Aseprite
             return (T)chunkCache[typeof(T)];
         }
 
-        public Texture2D[] GetFrames()
+        // TODO: move someplace else
+        [Serializable]
+        public class LayerAsFrames
         {
-            var frames = new List<Texture2D>();
-
-            for (var i = 0; i < Frames.Count; ++i) frames.Add(GetFrame(i));
-
-            return frames.ToArray();
+            public string Name = default;
+            public List<Texture2D> Frames = default;
         }
 
-        public Texture2D[] GetLayersAsFrames()
+        public List<LayerAsFrames> GetLayersAsFrames()
         {
-            var frames = new List<Texture2D>();
-            var layers = GetChunks<LayerChunk>();
+            var layerChunks = GetChunks<LayerChunk>();
+            var layersOfFrames = new List<LayerAsFrames>();
 
-            for (var i = 0; i < layers.Count; ++i)
+            for (var i = 0; i < layerChunks.Count; ++i)
             {
-                var layerFrames = GetLayerTexture(i, layers[i]);
+                var layerFrames = GetLayerAsFrames(i, layerChunks[i]);
 
-                if (layerFrames.Count > 0) frames.AddRange(layerFrames);
+                if (layerFrames.Count < 1) continue;
+
+                layersOfFrames.Add(new LayerAsFrames()
+                {
+                    Name = layerChunks[i].LayerName,
+                    Frames = layerFrames
+                });
             }
 
-            return frames.ToArray();
+            return layersOfFrames;
         }
 
-        LayerChunk GetParentLayer(LayerChunk layer)
-        {
-            if (layer.LayerChildLevel == 0) return default;
-
-            var layers = GetChunks<LayerChunk>();
-            var index = layers.IndexOf(layer);
-
-            if (index < 0) return default;
-
-            for (var i = index - 1; i > 0; --i)
-                if (layers[i].LayerChildLevel == layer.LayerChildLevel - 1)
-                    return layers[i];
-
-            return default;
-        }
-
-        public List<Texture2D> GetLayerTexture(int layerIndex, LayerChunk layer)
+        public List<Texture2D> GetLayerAsFrames(int layerIndex, LayerChunk layer)
         {
             var layers = GetChunks<LayerChunk>();
             var textures = new List<Texture2D>();
@@ -118,8 +105,6 @@ namespace Aseprite
                 {
                     if (cels[i].LayerIndex != layerIndex) continue;
 
-                    var blendMode = layer.BlendMode;
-                    var opacity = Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f);
                     var visibility = layer.Visible;
 
                     var parent = GetParentLayer(layer);
@@ -142,6 +127,31 @@ namespace Aseprite
             }
 
             return textures;
+        }
+
+        public Texture2D[] GetFrames()
+        {
+            var frames = new List<Texture2D>();
+
+            for (var i = 0; i < Frames.Count; ++i) frames.Add(GetFrame(i));
+
+            return frames.ToArray();
+        }
+
+        LayerChunk GetParentLayer(LayerChunk layer)
+        {
+            if (layer.LayerChildLevel == 0) return default;
+
+            var layers = GetChunks<LayerChunk>();
+            var index = layers.IndexOf(layer);
+
+            if (index < 0) return default;
+
+            for (var i = index - 1; i > 0; --i)
+                if (layers[i].LayerChildLevel == layer.LayerChildLevel - 1)
+                    return layers[i];
+
+            return default;
         }
 
         public Texture2D GetFrame(int index)
@@ -247,13 +257,13 @@ namespace Aseprite
             return texture;
         }
 
-        public FrameTag[] GetAnimations()
+        public FrameTag[] GetFrameTags()
         {
-            var tagChunks = this.GetChunks<FrameTagsChunk>();
+            var tagChunks = GetChunks<FrameTagsChunk>();
             var animations = new List<FrameTag>();
 
-            foreach (FrameTagsChunk tagChunk in tagChunks)
-                foreach (FrameTag tag in tagChunk.Tags)
+            foreach (var tagChunk in tagChunks)
+                foreach (var tag in tagChunk.Tags)
                     animations.Add(tag);
 
             return animations.ToArray();
@@ -315,17 +325,19 @@ namespace Aseprite
             return metadatas.Values.ToArray();
         }
 
-        public Texture2D GetTextureAtlas()
+        public Texture2D GetTextureAtlas(List<Texture2D> frames)
         {
-            var frames = this.GetFrames();
+            var atlas = Texture2DUtil.CreateTransparentTexture(
+                Header.Width * frames.Count,
+                Header.Height
+            );
 
-            var atlas = Texture2DUtil.CreateTransparentTexture(Header.Width * frames.Length, Header.Height);
             var spriteRects = new List<Rect>();
 
             var col = 0;
             var row = 0;
 
-            foreach (Texture2D frame in frames)
+            foreach (var frame in frames)
             {
                 var spriteRect = new Rect(col++ * Header.Width, atlas.height - ((row + 1) * Header.Height), Header.Width, Header.Height);
                 atlas.SetPixels((int)spriteRect.x, (int)spriteRect.y, (int)spriteRect.width, (int)spriteRect.height, frame.GetPixels());

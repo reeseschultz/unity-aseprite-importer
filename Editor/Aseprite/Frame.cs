@@ -1,7 +1,6 @@
 ﻿using Aseprite.Chunks;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
 namespace Aseprite
 {

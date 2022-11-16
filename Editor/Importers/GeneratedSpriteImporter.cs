@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Aseprite;
 using Aseprite.Chunks;
 using Aseprite.Utils;
@@ -35,9 +36,19 @@ namespace AsepriteImporter.Importers
 
         protected override bool OnUpdate()
         {
-            if (GenerateSprites())
+            if (GenerateSpritesSeparatedByLayer())
             {
-                GeneratorAnimations();
+                // TODO: animation
+
+                return true;
+            }
+
+            if (GenerateSprites(filePath, fileName))
+            {
+                // TODO: animation
+
+                // GeneratorAnimations();
+
                 return true;
             }
 
@@ -145,11 +156,15 @@ namespace AsepriteImporter.Importers
         void CopyColors(Texture2D sprite, Texture2D atlas, RectInt to)
             => atlas.SetPixels(to.x, to.y, to.width, to.height, GetPixels(sprite));
 
-        bool GenerateSprites()
+        bool GenerateSprites(string path, string filename, int? rowOverride = null)
         {
-            var importer = AssetImporter.GetAtPath(filePath) as TextureImporter;
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
 
             if (importer == default) return false;
+
+            // TODO: dynamically set max texture size
+            // note that anything above 8192 cannot be set to readable
+            importer.maxTextureSize = 8192;
 
             importer.textureType = TextureImporterType.Sprite;
             importer.spritePixelsPerUnit = Settings.pixelsPerUnit;
@@ -157,7 +172,7 @@ namespace AsepriteImporter.Importers
             importer.filterMode = FilterMode.Point;
             importer.isReadable = TextureImportSettings.readable;
 
-            var metaList = CreateMetaData(fileName);
+            var metaList = CreateMetadata(filename, rowOverride);
             var oldProperties = AseSpritePostProcess.GetPhysicsShapeProperties(importer, metaList);
 
             importer.spritesheet = metaList.ToArray();
@@ -184,36 +199,68 @@ namespace AsepriteImporter.Importers
             return true;
         }
 
-        List<SpriteMetaData> CreateMetaData(string fileName)
+        List<SpriteMetaData> CreateMetadata(string filename, int? colsForAtlas = null)
         {
             var res = new List<SpriteMetaData>();
-            var index = 0;
+            var frame = 0;
             var height = rows * (size.y + padding * 2);
             var done = false;
-            var count10 = frames.Length >= 100 ? 3 : (frames.Length >= 10 ? 2 : 1);
+            var tagCountMap = new Dictionary<string, int>();
+            var frameTags = AsepriteFile.GetFrameTags();
+            var numRows = rows;
+            var numCols = cols;
 
-            for (var row = 0; row < rows; ++row)
+            if (colsForAtlas.HasValue)
             {
-                for (var col = 0; col < cols; ++col)
+                numRows = 1;
+                numCols = colsForAtlas.Value;
+            }
+
+            for (var row = 0; row < numRows; ++row)
+            {
+                for (var col = 0; col < numCols; ++col)
                 {
-                    var rect = new Rect(col * (size.x + padding * 2) + padding,
-                        height - (row + 1) * (size.y + padding * 2) + padding,
+                    if (frame >= frames.Length)
+                    {
+                        done = true;
+                        break;
+                    }
+
+                    var rect = new Rect(
+                        col * size.x,
+                        row * size.y,
                         size.x,
                         size.y
                     );
 
+                    if (!colsForAtlas.HasValue)
+                    {
+                        rect.x = col * (size.x + padding * 2) + padding;
+                        rect.y = height - (row + 1) * (size.y + padding * 2) + padding;
+                    }
+
+                    var tag = "Untagged";
+
+                    foreach (var frameTag in frameTags)
+                    {
+                        if (frame >= frameTag.FrameFrom && frame <= frameTag.FrameTo)
+                        {
+                            tag = frameTag.TagName;
+                            break;
+                        }
+                    }
+
+                    if (tagCountMap.ContainsKey(tag)) ++tagCountMap[tag];
+                    else tagCountMap.TryAdd(tag, 0);
+
                     var meta = new SpriteMetaData();
-                    meta.name = fileName + index.ToString("D" + count10);
+                    meta.name = tag + tagCountMap[tag].ToString("D");
                     meta.rect = rect;
                     meta.alignment = Settings.spriteAlignment;
                     meta.pivot = Settings.spritePivot;
                     res.Add(meta);
 
-                    if (index++ >= frames.Length)
-                    {
-                        done = true;
-                        break;
-                    }
+                    ++frame;
                 }
 
                 if (done) break;
@@ -227,12 +274,52 @@ namespace AsepriteImporter.Importers
             var sprites = GetAllSpritesFromAssetFile(filePath);
             sprites.Sort((lhs, rhs) => String.CompareOrdinal(lhs.name, rhs.name));
 
-            var clips = GenerateAnimations(AsepriteFile, sprites);
+            var clips = GenerateAnimations(sprites);
 
             if (Settings.buildAtlas) CreateSpriteAtlas(sprites);
 
             if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips);
             else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips);
+        }
+
+        bool GenerateSpritesSeparatedByLayer()
+        {
+            var layers = AsepriteFile.GetLayersAsFrames();
+            var parentPath = directoryName + "/";
+            var generatedSprites = false;
+
+            foreach (var layer in layers)
+            {
+                var rect = new Rect(0, 0, size.x, size.y);
+                var layerDirPath = parentPath + layer.Name;
+
+                if (!AssetDatabase.IsValidFolder(layerDirPath)) AssetDatabase.CreateFolder(
+                    Path.GetDirectoryName(parentPath),
+                    layer.Name
+                );
+
+                // TODO: generate atlases that include multiple rows;
+                // something more similar to GenerateSpriteAtlas
+                var atlas = AsepriteFile.GetTextureAtlas(layer.Frames);
+                var layerFilename = layer.Name;
+                var layerFilePath = layerDirPath + "/" + layerFilename + ".png";
+
+                try
+                {
+                    File.WriteAllBytes(layerFilePath, atlas.EncodeToPNG());
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.Message);
+                }
+
+                if (GenerateSprites(layerFilePath, layerFilename, layer.Frames.Count))
+                    generatedSprites = true;
+            }
+
+            return generatedSprites;
         }
 
         WrapMode GetDefaultWrapMode(string animName)
@@ -248,19 +335,19 @@ namespace AsepriteImporter.Importers
             return WrapMode.Once;
         }
 
-        List<AnimationClip> GenerateAnimations(AseFile aseFile, List<Sprite> sprites)
+        List<AnimationClip> GenerateAnimations(List<Sprite> sprites, string layerPath = "")
         {
             var res = new List<AnimationClip>();
-            var animations = aseFile.GetAnimations();
+            var animations = AsepriteFile.GetFrameTags();
 
             if (animations.Length <= 0) return res;
 
-            var metadatas = aseFile.GetMetaData(Settings.spritePivot, Settings.pixelsPerUnit);
+            var metadatas = AsepriteFile.GetMetaData(Settings.spritePivot, Settings.pixelsPerUnit);
             var index = 0;
 
             foreach (var animation in animations)
             {
-                var path = directoryName + "/" + fileName + "_" + animation.TagName + ".anim";
+                var path = directoryName + "/" + fileName + "/" + layerPath + animation.TagName + ".anim";
                 var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
 
                 if (clip == default)
@@ -271,11 +358,11 @@ namespace AsepriteImporter.Importers
                 }
                 else
                 {
-                    AnimationClipSettings animSettings = AnimationUtility.GetAnimationClipSettings(clip);
+                    var animSettings = AnimationUtility.GetAnimationClipSettings(clip);
                     clip.wrapMode = animSettings.loopTime ? WrapMode.Loop : WrapMode.Once;
                 }
 
-                clip.name = fileName + "_" + animation.TagName;
+                clip.name = animation.TagName;
                 clip.frameRate = 25;
 
                 var editorBinding = new EditorCurveBinding();
@@ -311,26 +398,28 @@ namespace AsepriteImporter.Importers
                     frame.time = time;
                     frame.value = sprites[keyIndex];
 
-                    time += aseFile.Frames[keyIndex].FrameDuration / 1000f;
+                    time += AsepriteFile.Frames[keyIndex].FrameDuration / 1000f;
                     spriteKeyFrames[i] = frame;
 
                     foreach (var metadata in metadatas)
                     {
-                        if (metadata.Type == MetaDataType.TRANSFORM && metadata.Transforms.ContainsKey(keyIndex))
+                        if (
+                            metadata.Type != MetaDataType.TRANSFORM ||
+                            !metadata.Transforms.ContainsKey(keyIndex)
+                        ) continue;
+
+                        var childTransform = metadata.Args[0];
+
+                        if (!transformCurveX.ContainsKey(childTransform))
                         {
-                            var childTransform = metadata.Args[0];
-
-                            if (!transformCurveX.ContainsKey(childTransform))
-                            {
-                                transformCurveX[childTransform] = new AnimationCurve();
-                                transformCurveY[childTransform] = new AnimationCurve();
-                            }
-
-                            var pos = metadata.Transforms[keyIndex];
-
-                            transformCurveX[childTransform].AddKey(i, pos.x);
-                            transformCurveY[childTransform].AddKey(i, pos.y);
+                            transformCurveX[childTransform] = new AnimationCurve();
+                            transformCurveY[childTransform] = new AnimationCurve();
                         }
+
+                        var pos = metadata.Transforms[keyIndex];
+
+                        transformCurveX[childTransform].AddKey(i, pos.x);
+                        transformCurveY[childTransform].AddKey(i, pos.y);
                     }
 
                     keyIndex += step;
@@ -344,13 +433,15 @@ namespace AsepriteImporter.Importers
                 spriteKeyFrames[spriteKeyFrames.Length - 1] = lastFrame;
                 foreach (var metadata in metadatas)
                 {
-                    if (metadata.Type == MetaDataType.TRANSFORM && metadata.Transforms.ContainsKey(keyIndex - step))
-                    {
-                        var childTransform = metadata.Args[0];
-                        var pos = metadata.Transforms[keyIndex - step];
-                        transformCurveX[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.x);
-                        transformCurveY[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.y);
-                    }
+                    if (
+                        metadata.Type != MetaDataType.TRANSFORM ||
+                        !metadata.Transforms.ContainsKey(keyIndex - step)
+                    ) continue;
+
+                    var childTransform = metadata.Args[0];
+                    var pos = metadata.Transforms[keyIndex - step];
+                    transformCurveX[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.x);
+                    transformCurveY[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.y);
                 }
 
                 AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, spriteKeyFrames);
