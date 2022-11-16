@@ -62,17 +62,18 @@ namespace AsepriteImporter.Importers
             directoryName = Path.GetDirectoryName(acePath) + "/" + fileName;
 
             if (!AssetDatabase.IsValidFolder(directoryName))
-            {
                 AssetDatabase.CreateFolder(Path.GetDirectoryName(acePath), fileName);
-            }
 
             filePath = directoryName + "/" + fileName + ".png";
 
-            var atlas = GenerateAtlas(frames);
+            WriteTexture(filePath, GenerateAtlas(frames));
+        }
 
+        public void WriteTexture(string path, Texture2D texture)
+        {
             try
             {
-                File.WriteAllBytes(filePath, atlas.EncodeToPNG());
+                File.WriteAllBytes(path, texture.EncodeToPNG());
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
             }
@@ -82,21 +83,23 @@ namespace AsepriteImporter.Importers
             }
         }
 
-        public Texture2D GenerateAtlas(Texture2D[] sprites)
+        public Vector2Int GetColsAndRows(int spriteCount)
         {
-            var area = size.x * size.y * sprites.Length;
+            var area = size.x * size.y * spriteCount;
+            var cols = 0;
+            var rows = 0;
 
-            if (sprites.Length < 4)
+            if (spriteCount < 4)
             {
                 if (size.x <= size.y)
                 {
-                    cols = sprites.Length;
+                    cols = spriteCount;
                     rows = 1;
                 }
                 else
                 {
-                    rows = sprites.Length;
                     cols = 1;
+                    rows = spriteCount;
                 }
             }
             else
@@ -106,22 +109,39 @@ namespace AsepriteImporter.Importers
                 rows = Mathf.CeilToInt(sqrt / size.y);
             }
 
-            var width = cols * (size.x + padding * 2);
-            var height = rows * (size.y + padding * 2);
-            var atlas = Texture2DUtil.CreateTransparentTexture(width, height);
-            var index = 0;
+            return new Vector2Int(cols, rows);
+        }
+
+        public Vector2Int GetWidthAndHeight(Vector2Int colsAndRows)
+        {
+            var width = colsAndRows.x * (size.x + padding * 2);
+            var height = colsAndRows.y * (size.y + padding * 2);
+
+            return new Vector2Int(width, height);
+        }
+
+        public Texture2D GenerateAtlas(Texture2D[] sprites)
+        {
+            var colsAndRows = GetColsAndRows(sprites.Length);
+
+            cols = colsAndRows.x;
+            rows = colsAndRows.y;
+
+            var widthAndHeight = GetWidthAndHeight(colsAndRows);
+            var atlas = Texture2DUtil.CreateTransparentTexture(widthAndHeight.x, widthAndHeight.y);
+            var frame = 0;
 
             for (var row = 0; row < rows; ++row)
             {
                 for (var col = 0; col < cols; ++col)
                 {
-                    if (index == sprites.Length) break;
+                    if (frame == sprites.Length) break;
 
-                    var sprite = sprites[index++];
+                    var sprite = sprites[frame++];
 
                     var rect = new RectInt(
                         col * (size.x + padding * 2) + padding,
-                        height - (row + 1) * (size.y + padding * 2) + padding,
+                        widthAndHeight.y - (row + 1) * (size.y + padding * 2) + padding,
                         size.x,
                         size.y
                     );
@@ -202,55 +222,55 @@ namespace AsepriteImporter.Importers
 
         List<SpriteMetaData> CreateMetadata(string filename, List<FrameCel> frameCels = default)
         {
-            var res = new List<SpriteMetaData>();
-            var frame = 0;
+            var metadata = new List<SpriteMetaData>();
             var height = rows * (size.y + padding * 2);
-            var done = false;
-            var tagCountMap = new Dictionary<string, int>();
-            var frameTags = AsepriteFile.GetFrameTags();
             var numRows = rows;
             var numCols = cols;
 
             if (frameCels != default)
             {
-                numRows = 1;
-                numCols = frameCels.Count;
+                var colsAndRows = GetColsAndRows(frameCels.Count);
+
+                numCols = colsAndRows.x;
+                numRows = colsAndRows.y;
+
+                var widthAndHeight = GetWidthAndHeight(colsAndRows);
+
+                height = widthAndHeight.y;
             }
+
+            var localFrame = 0;
+            var tagCountMap = new Dictionary<string, int>();
+            var frameTags = AsepriteFile.GetFrameTags();
+            var done = false;
 
             for (var row = 0; row < numRows; ++row)
             {
                 for (var col = 0; col < numCols; ++col)
                 {
-                    if (frame >= frames.Length)
+                    if (localFrame >= frames.Length)
                     {
                         done = true;
                         break;
                     }
 
-                    var rect = new Rect(
-                        col * size.x,
-                        row * size.y,
-                        size.x,
-                        size.y
-                    );
-
-                    var actualFrame = frame;
-
-                    if (frameCels == default)
+                    var globalFrame = localFrame;
+                    if (frameCels != default)
                     {
-                        rect.x = col * (size.x + padding * 2) + padding;
-                        rect.y = height - (row + 1) * (size.y + padding * 2) + padding;
-                    }
-                    else
-                    {
-                        actualFrame = frameCels.ElementAt(frame).Frame;
+                        if (localFrame >= frameCels.Count)
+                        {
+                            done = true;
+                            break;
+                        }
+
+                        globalFrame = frameCels.ElementAt(localFrame).Frame;
                     }
 
                     var tag = "Untagged";
 
                     foreach (var frameTag in frameTags)
                     {
-                        if (actualFrame >= frameTag.FrameFrom && actualFrame <= frameTag.FrameTo)
+                        if (globalFrame >= frameTag.FrameFrom && globalFrame <= frameTag.FrameTo)
                         {
                             tag = frameTag.TagName;
                             break;
@@ -262,18 +282,24 @@ namespace AsepriteImporter.Importers
 
                     var meta = new SpriteMetaData();
                     meta.name = tag + tagCountMap[tag].ToString("D");
-                    meta.rect = rect;
                     meta.alignment = Settings.spriteAlignment;
                     meta.pivot = Settings.spritePivot;
-                    res.Add(meta);
+                    meta.rect = new Rect(
+                        col * (size.x + padding * 2) + padding,
+                        height - (row + 1) * (size.y + padding * 2) + padding,
+                        size.x,
+                        size.y
+                    );
 
-                    ++frame;
+                    metadata.Add(meta);
+
+                    ++localFrame;
                 }
 
                 if (done) break;
             }
 
-            return res;
+            return metadata;
         }
 
         void GeneratorAnimations()
@@ -297,7 +323,6 @@ namespace AsepriteImporter.Importers
 
             foreach (var layer in layers)
             {
-                var rect = new Rect(0, 0, size.x, size.y);
                 var layerDirPath = parentPath + layer.Name;
 
                 if (!AssetDatabase.IsValidFolder(layerDirPath)) AssetDatabase.CreateFolder(
@@ -309,22 +334,11 @@ namespace AsepriteImporter.Importers
                 foreach (var frameCel in layer.FrameCels)
                     cels.Add(frameCel.Cel);
 
-                // TODO: generate atlases that include multiple rows;
-                // something more similar to GenerateSpriteAtlas
-                var atlas = AsepriteFile.GetTextureAtlas(cels);
+                var atlas = GenerateAtlas(cels.ToArray());
                 var layerFilename = layer.Name;
                 var layerFilePath = layerDirPath + "/" + layerFilename + ".png";
 
-                try
-                {
-                    File.WriteAllBytes(layerFilePath, atlas.EncodeToPNG());
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.Message);
-                }
+                WriteTexture(layerFilePath, atlas);
 
                 if (GenerateSprites(layerFilePath, layerFilename, layer.FrameCels))
                     generatedSprites = true;
