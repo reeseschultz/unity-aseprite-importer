@@ -97,11 +97,15 @@ namespace Aseprite
         {
             public int Frame = default;
             public Texture2D Cel = default;
+            public LayerBlendMode BlendMode = default;
+            public float Opacity = default;
 
-            public FrameCel(int frame, Texture2D cel)
+            public FrameCel(int frame, Texture2D cel, LayerBlendMode blendMode, float opacity)
             {
                 Frame = frame;
                 Cel = cel;
+                BlendMode = blendMode;
+                Opacity = opacity;
             }
         }
 
@@ -139,7 +143,9 @@ namespace Aseprite
                     frameCels.Add(
                         new FrameCel(
                             frameIndex,
-                            GetTextureFromCel(cels[i])
+                            GetTextureFromCel(cels[i]),
+                            layer.BlendMode,
+                            Mathf.Min(layer.Opacity / 255f, cels[i].Opacity / 255f)
                         )
                     );
                 }

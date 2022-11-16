@@ -323,6 +323,101 @@ namespace AsepriteImporter.Importers
             var parentPath = directoryName + "/";
             var generatedSprites = false;
 
+            if (
+                Settings.layerMergeOptions != default &&
+                Settings.layerMergeOptions.Count > 0
+            )
+            {
+                var layersToMergeMap = new Dictionary<string, List<LayerAsFrames>>();
+
+                foreach (var layer in layers)
+                {
+                    foreach (var option in Settings.layerMergeOptions)
+                    {
+                        if (option.Layers.Contains(layer.Name))
+                        {
+                            if (layersToMergeMap.ContainsKey(option.Name))
+                            {
+                                layersToMergeMap[option.Name].Add(layer);
+                            }
+                            else
+                            {
+                                layersToMergeMap.TryAdd(option.Name, new List<LayerAsFrames>());
+                                layersToMergeMap[option.Name].Add(layer);
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                var mergedLayers = new List<LayerAsFrames>();
+
+                foreach (var layersToMerge in layersToMergeMap)
+                {
+                    var mergedLayerAsFrames = new LayerAsFrames();
+                    mergedLayerAsFrames.Name = layersToMerge.Key;
+                    mergedLayerAsFrames.FrameCels = new List<FrameCel>();
+                    mergedLayerAsFrames.FrameCels.AddRange(layersToMerge.Value[0].FrameCels);
+
+                    // TODO: Pad mergedLayerAsFrames.FrameCels to have the count of the highest number of frame cels.
+
+                    for (var i = 0; i < mergedLayerAsFrames.FrameCels.Count; ++i)
+                    {
+                        // Cannot assume frames match solely by index since layers may have different cel composition:
+                        FrameCel matchingFrameCel = default; 
+                        for (var j = 1; j < layersToMerge.Value.Count; ++j)
+                        {
+                            var layerAsFramesToMerge = layersToMerge.Value[j];
+
+                            foreach (var frameCelToMerge in layerAsFramesToMerge.FrameCels)
+                            {
+                                if (mergedLayerAsFrames.FrameCels[i].Frame == frameCelToMerge.Frame)
+                                {
+                                    matchingFrameCel = frameCelToMerge;
+                                    break;
+                                }
+                            }
+
+                            if (matchingFrameCel != default) break;
+                        }
+
+                        if (matchingFrameCel == default) continue;
+                    
+                        var celTex = matchingFrameCel.Cel;
+                        var opacity = matchingFrameCel.Opacity;
+
+                        // TODO: Genericize application of blend mode into function (pass cel texture as a ref).
+                        switch (matchingFrameCel.BlendMode)
+                        {
+                            case LayerBlendMode.Normal:     mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Normal(mergedLayerAsFrames.FrameCels[i].Cel, celTex, opacity); break;
+                            case LayerBlendMode.Multiply:   mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Multiply(mergedLayerAsFrames.FrameCels[i].Cel, celTex, opacity); break;
+                            case LayerBlendMode.Screen:     mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Screen(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Overlay:    mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Overlay(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Darken:     mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Darken(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Lighten:    mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Lighten(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.ColorDodge: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.ColorDodge(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.ColorBurn:  mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.ColorBurn(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.HardLight:  mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.HardLight(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.SoftLight:  mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.SoftLight(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Difference: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Difference(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Exclusion:  mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Exclusion(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Hue:        mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Hue(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Saturation: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Saturation(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Color:      mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Color(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Luminosity: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Luminosity(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Addition:   mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Addition(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Subtract:   mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Subtract(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                            case LayerBlendMode.Divide:     mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Divide(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
+                        }
+                    }
+
+                    mergedLayers.Add(mergedLayerAsFrames);
+                }
+
+                layers = mergedLayers;
+            }
+
             foreach (var layer in layers)
             {
                 var layerDirPath = parentPath + layer.Name;
