@@ -67,7 +67,7 @@ namespace Aseprite
         public class LayerAsFrames
         {
             public string Name = default;
-            public List<Texture2D> Frames = default;
+            public List<FrameCel> FrameCels = default;
         }
 
         public List<LayerAsFrames> GetLayersAsFrames()
@@ -77,24 +77,38 @@ namespace Aseprite
 
             for (var i = 0; i < layerChunks.Count; ++i)
             {
-                var layerFrames = GetLayerAsFrames(i, layerChunks[i]);
+                var layerFrames = GetFrameCels(i, layerChunks[i]);
 
                 if (layerFrames.Count < 1) continue;
 
                 layersOfFrames.Add(new LayerAsFrames()
                 {
                     Name = layerChunks[i].LayerName,
-                    Frames = layerFrames
+                    FrameCels = layerFrames
                 });
             }
 
             return layersOfFrames;
         }
 
-        public List<Texture2D> GetLayerAsFrames(int layerIndex, LayerChunk layer)
+        // TODO: move someplace else
+        [Serializable]
+        public class FrameCel
+        {
+            public int Frame = default;
+            public Texture2D Cel = default;
+
+            public FrameCel(int frame, Texture2D cel)
+            {
+                Frame = frame;
+                Cel = cel;
+            }
+        }
+
+        public List<FrameCel> GetFrameCels(int layerIndex, LayerChunk layer)
         {
             var layers = GetChunks<LayerChunk>();
-            var textures = new List<Texture2D>();
+            var frameCels = new List<FrameCel>();
 
             for (var frameIndex = 0; frameIndex < Frames.Count; ++frameIndex)
             {
@@ -122,11 +136,16 @@ namespace Aseprite
                         layer.LayerType == LayerType.Group
                     ) continue;
 
-                    textures.Add(GetTextureFromCel(cels[i]));
+                    frameCels.Add(
+                        new FrameCel(
+                            frameIndex,
+                            GetTextureFromCel(cels[i])
+                        )
+                    );
                 }
             }
 
-            return textures;
+            return frameCels;
         }
 
         public Texture2D[] GetFrames()

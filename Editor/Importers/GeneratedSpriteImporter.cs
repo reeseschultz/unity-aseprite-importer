@@ -11,6 +11,7 @@ using UnityEditor.U2D;
 using UnityEngine;
 using UnityEngine.U2D;
 using UnityEngine.UI;
+using static Aseprite.AseFile;
 
 namespace AsepriteImporter.Importers
 {
@@ -156,7 +157,7 @@ namespace AsepriteImporter.Importers
         void CopyColors(Texture2D sprite, Texture2D atlas, RectInt to)
             => atlas.SetPixels(to.x, to.y, to.width, to.height, GetPixels(sprite));
 
-        bool GenerateSprites(string path, string filename, int? rowOverride = null)
+        bool GenerateSprites(string path, string filename, List<FrameCel> frameCels = default)
         {
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
 
@@ -172,7 +173,7 @@ namespace AsepriteImporter.Importers
             importer.filterMode = FilterMode.Point;
             importer.isReadable = TextureImportSettings.readable;
 
-            var metaList = CreateMetadata(filename, rowOverride);
+            var metaList = CreateMetadata(filename, frameCels);
             var oldProperties = AseSpritePostProcess.GetPhysicsShapeProperties(importer, metaList);
 
             importer.spritesheet = metaList.ToArray();
@@ -199,7 +200,7 @@ namespace AsepriteImporter.Importers
             return true;
         }
 
-        List<SpriteMetaData> CreateMetadata(string filename, int? colsForAtlas = null)
+        List<SpriteMetaData> CreateMetadata(string filename, List<FrameCel> frameCels = default)
         {
             var res = new List<SpriteMetaData>();
             var frame = 0;
@@ -210,10 +211,10 @@ namespace AsepriteImporter.Importers
             var numRows = rows;
             var numCols = cols;
 
-            if (colsForAtlas.HasValue)
+            if (frameCels != default)
             {
                 numRows = 1;
-                numCols = colsForAtlas.Value;
+                numCols = frameCels.Count;
             }
 
             for (var row = 0; row < numRows; ++row)
@@ -233,17 +234,23 @@ namespace AsepriteImporter.Importers
                         size.y
                     );
 
-                    if (!colsForAtlas.HasValue)
+                    var actualFrame = frame;
+
+                    if (frameCels == default)
                     {
                         rect.x = col * (size.x + padding * 2) + padding;
                         rect.y = height - (row + 1) * (size.y + padding * 2) + padding;
+                    }
+                    else
+                    {
+                        actualFrame = frameCels.ElementAt(frame).Frame;
                     }
 
                     var tag = "Untagged";
 
                     foreach (var frameTag in frameTags)
                     {
-                        if (frame >= frameTag.FrameFrom && frame <= frameTag.FrameTo)
+                        if (actualFrame >= frameTag.FrameFrom && actualFrame <= frameTag.FrameTo)
                         {
                             tag = frameTag.TagName;
                             break;
@@ -298,9 +305,13 @@ namespace AsepriteImporter.Importers
                     layer.Name
                 );
 
+                var cels = new List<Texture2D>();
+                foreach (var frameCel in layer.FrameCels)
+                    cels.Add(frameCel.Cel);
+
                 // TODO: generate atlases that include multiple rows;
                 // something more similar to GenerateSpriteAtlas
-                var atlas = AsepriteFile.GetTextureAtlas(layer.Frames);
+                var atlas = AsepriteFile.GetTextureAtlas(cels);
                 var layerFilename = layer.Name;
                 var layerFilePath = layerDirPath + "/" + layerFilename + ".png";
 
@@ -315,7 +326,7 @@ namespace AsepriteImporter.Importers
                     Debug.LogError(e.Message);
                 }
 
-                if (GenerateSprites(layerFilePath, layerFilename, layer.Frames.Count))
+                if (GenerateSprites(layerFilePath, layerFilename, layer.FrameCels))
                     generatedSprites = true;
             }
 
