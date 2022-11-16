@@ -37,12 +37,7 @@ namespace AsepriteImporter.Importers
 
         protected override bool OnUpdate()
         {
-            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer())
-            {
-                // TODO: animation
-
-                return true;
-            }
+            var generatedSprites = false;
 
             if (GenerateSprites(filePath, fileName))
             {
@@ -50,10 +45,17 @@ namespace AsepriteImporter.Importers
 
                 // GeneratorAnimations();
 
-                return true;
+                generatedSprites = true;
             }
 
-            return false;
+            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer())
+            {
+                // TODO: animation
+
+                generatedSprites = true;
+            }
+
+            return generatedSprites;
         }
 
         void BuildAtlas(string acePath)
