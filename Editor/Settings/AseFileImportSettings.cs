@@ -43,7 +43,7 @@ namespace AsepriteImporter
     }
 
     [Serializable]
-    public class SplitByLayers
+    public class LayerMergeOptions
     {
         [SerializeField] public string Name = default;
         [SerializeField] public List<string> Layers = default;
@@ -66,7 +66,8 @@ namespace AsepriteImporter
         [SerializeField] public AnimatorController baseAnimator = default;
         [SerializeField] public bool buildAtlas = default;
 
-        [SerializeField] public List<SplitByLayers> splitByLayers = default;
+        [SerializeField] public bool splitLayers = default;
+        [SerializeField] public List<LayerMergeOptions> layerMergeOptions = default;
 
         [SerializeField] public Vector2Int tileSize = new Vector2Int(16, 16);
         [SerializeField] public TileNameType tileNameType = TileNameType.Index;

@@ -37,7 +37,7 @@ namespace AsepriteImporter.Importers
 
         protected override bool OnUpdate()
         {
-            if (GenerateSpritesSeparatedByLayer())
+            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer())
             {
                 // TODO: animation
 
