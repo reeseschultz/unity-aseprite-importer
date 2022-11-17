@@ -217,25 +217,25 @@ namespace Aseprite
 
                 switch (blendMode)
                 {
-                    case LayerBlendMode.Normal: texture = Texture2DBlender.Normal(texture, celTex, opacity); break;
-                    case LayerBlendMode.Multiply: texture = Texture2DBlender.Multiply(texture, celTex, opacity); break;
-                    case LayerBlendMode.Screen: texture = Texture2DBlender.Screen(texture, celTex); break;
-                    case LayerBlendMode.Overlay: texture = Texture2DBlender.Overlay(texture, celTex); break;
-                    case LayerBlendMode.Darken: texture = Texture2DBlender.Darken(texture, celTex); break;
-                    case LayerBlendMode.Lighten: texture = Texture2DBlender.Lighten(texture, celTex); break;
-                    case LayerBlendMode.ColorDodge: texture = Texture2DBlender.ColorDodge(texture, celTex); break;
-                    case LayerBlendMode.ColorBurn: texture = Texture2DBlender.ColorBurn(texture, celTex); break;
-                    case LayerBlendMode.HardLight: texture = Texture2DBlender.HardLight(texture, celTex); break;
-                    case LayerBlendMode.SoftLight: texture = Texture2DBlender.SoftLight(texture, celTex); break;
-                    case LayerBlendMode.Difference: texture = Texture2DBlender.Difference(texture, celTex); break;
-                    case LayerBlendMode.Exclusion: texture = Texture2DBlender.Exclusion(texture, celTex); break;
-                    case LayerBlendMode.Hue: texture = Texture2DBlender.Hue(texture, celTex); break;
-                    case LayerBlendMode.Saturation: texture = Texture2DBlender.Saturation(texture, celTex); break;
-                    case LayerBlendMode.Color: texture = Texture2DBlender.Color(texture, celTex); break;
-                    case LayerBlendMode.Luminosity: texture = Texture2DBlender.Luminosity(texture, celTex); break;
-                    case LayerBlendMode.Addition: texture = Texture2DBlender.Addition(texture, celTex); break;
-                    case LayerBlendMode.Subtract: texture = Texture2DBlender.Subtract(texture, celTex); break;
-                    case LayerBlendMode.Divide: texture = Texture2DBlender.Divide(texture, celTex); break;
+                    case LayerBlendMode.Normal: Texture2DBlender.Normal(ref texture, celTex, opacity); break;
+                    case LayerBlendMode.Multiply: Texture2DBlender.Multiply(ref texture, celTex, opacity); break;
+                    case LayerBlendMode.Screen: Texture2DBlender.Screen(ref texture, celTex); break;
+                    case LayerBlendMode.Overlay: Texture2DBlender.Overlay(ref texture, celTex); break;
+                    case LayerBlendMode.Darken: Texture2DBlender.Darken(ref texture, celTex); break;
+                    case LayerBlendMode.Lighten: Texture2DBlender.Lighten(ref texture, celTex); break;
+                    case LayerBlendMode.ColorDodge: Texture2DBlender.ColorDodge(ref texture, celTex); break;
+                    case LayerBlendMode.ColorBurn: Texture2DBlender.ColorBurn(ref texture, celTex); break;
+                    case LayerBlendMode.HardLight: Texture2DBlender.HardLight(ref texture, celTex); break;
+                    case LayerBlendMode.SoftLight: Texture2DBlender.SoftLight(ref texture, celTex); break;
+                    case LayerBlendMode.Difference: Texture2DBlender.Difference(ref texture, celTex); break;
+                    case LayerBlendMode.Exclusion: Texture2DBlender.Exclusion(ref texture, celTex); break;
+                    case LayerBlendMode.Hue: Texture2DBlender.Hue(ref texture, celTex); break;
+                    case LayerBlendMode.Saturation: Texture2DBlender.Saturation(ref texture, celTex); break;
+                    case LayerBlendMode.Color: Texture2DBlender.Color(ref texture, celTex); break;
+                    case LayerBlendMode.Luminosity: Texture2DBlender.Luminosity(ref texture, celTex); break;
+                    case LayerBlendMode.Addition: Texture2DBlender.Addition(ref texture, celTex); break;
+                    case LayerBlendMode.Subtract: Texture2DBlender.Subtract(ref texture, celTex); break;
+                    case LayerBlendMode.Divide: Texture2DBlender.Divide(ref texture, celTex); break;
                 }
             }
 

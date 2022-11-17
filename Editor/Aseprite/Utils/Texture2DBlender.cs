@@ -62,10 +62,8 @@ namespace Aseprite.Utils
         public static float Exclusion(float b, float s)
             => b + s - 2 * b * s;
 
-        public static Texture2D Normal(Texture2D baseLayer, Texture2D layer, float opacity)
+        public static void Normal(ref Texture2D baseLayer, Texture2D layer, float opacity)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -79,19 +77,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * b;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Multiply(Texture2D baseLayer, Texture2D layer, float opacity)
+        public static void Multiply(ref Texture2D baseLayer, Texture2D layer, float opacity)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -105,19 +99,15 @@ namespace Aseprite.Utils
                     c.b = (a.b) * (opacity * (1f - b.a * (1f - b.b)));
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Screen(Texture2D baseLayer, Texture2D layer)
+        public static void Screen(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -126,19 +116,15 @@ namespace Aseprite.Utils
                     var b = layer.GetPixel(x, y);
                     var c = a + b - a * b;
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Overlay(Texture2D baseLayer, Texture2D layer)
+        public static void Overlay(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -159,19 +145,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Darken(Texture2D baseLayer, Texture2D layer)
+        public static void Darken(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -187,19 +169,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Lighten(Texture2D baseLayer, Texture2D layer)
+        public static void Lighten(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -215,19 +193,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D ColorDodge(Texture2D baseLayer, Texture2D layer)
+        public static void ColorDodge(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -243,19 +217,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D ColorBurn(Texture2D baseLayer, Texture2D layer)
+        public static void ColorBurn(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -271,19 +241,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D HardLight(Texture2D baseLayer, Texture2D layer)
+        public static void HardLight(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -299,19 +265,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D SoftLight(Texture2D baseLayer, Texture2D layer)
+        public static void SoftLight(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -327,19 +289,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Difference(Texture2D baseLayer, Texture2D layer)
+        public static void Difference(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -355,19 +313,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Exclusion(Texture2D baseLayer, Texture2D layer)
+        public static void Exclusion(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -383,20 +337,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-
-        public static Texture2D Hue(Texture2D baseLayer, Texture2D layer)
+        public static void Hue(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -412,19 +361,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Saturation(Texture2D baseLayer, Texture2D layer)
+        public static void Saturation(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -440,19 +385,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Color(Texture2D baseLayer, Texture2D layer)
+        public static void Color(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -464,19 +405,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Luminosity(Texture2D baseLayer, Texture2D layer)
+        public static void Luminosity(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -488,19 +425,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Addition(Texture2D baseLayer, Texture2D layer)
+        public static void Addition(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -512,19 +445,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Subtract(Texture2D baseLayer, Texture2D layer)
+        public static void Subtract(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -536,19 +465,15 @@ namespace Aseprite.Utils
                     c = ((1f - b.a) * a) + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
-        public static Texture2D Divide(Texture2D baseLayer, Texture2D layer)
+        public static void Divide(ref Texture2D baseLayer, Texture2D layer)
         {
-            var newLayer = new Texture2D(baseLayer.width, baseLayer.height);
-
             for (var x = 0; x < baseLayer.width; ++x)
             {
                 for (var y = 0; y < baseLayer.height; ++y)
@@ -565,13 +490,11 @@ namespace Aseprite.Utils
                     c = (1f - b.a) * a + b.a * c; ;
                     c.a = a.a + b.a * (1f - a.a);
 
-                    newLayer.SetPixel(x, y, c);
+                    baseLayer.SetPixel(x, y, c);
                 }
             }
 
-            newLayer.Apply();
-
-            return newLayer;
+            baseLayer.Apply();
         }
 
         static float BlendDivide(float b, float s)
