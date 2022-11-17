@@ -377,34 +377,7 @@ namespace AsepriteImporter.Importers
                             .Where(f => frame == f.Frame);
 
                         foreach (var frameCel in matchingFrameCels)
-                        {
-                            var celTex = frameCel.Cel;
-                            var opacity = frameCel.Opacity;
-
-                            // TODO: Genericize application of blend mode into function (pass cel texture as a ref).
-                            switch (frameCel.BlendMode)
-                            {
-                                case LayerBlendMode.Normal: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Normal(mergedLayerAsFrames.FrameCels[i].Cel, celTex, opacity); break;
-                                case LayerBlendMode.Multiply: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Multiply(mergedLayerAsFrames.FrameCels[i].Cel, celTex, opacity); break;
-                                case LayerBlendMode.Screen: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Screen(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Overlay: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Overlay(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Darken: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Darken(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Lighten: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Lighten(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.ColorDodge: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.ColorDodge(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.ColorBurn: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.ColorBurn(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.HardLight: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.HardLight(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.SoftLight: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.SoftLight(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Difference: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Difference(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Exclusion: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Exclusion(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Hue: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Hue(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Saturation: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Saturation(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Color: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Color(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Luminosity: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Luminosity(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Addition: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Addition(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Subtract: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Subtract(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                                case LayerBlendMode.Divide: mergedLayerAsFrames.FrameCels[i].Cel = Texture2DBlender.Divide(mergedLayerAsFrames.FrameCels[i].Cel, celTex); break;
-                            }
-                        }
+                            Blend(ref mergedLayerAsFrames.FrameCels[i].Cel, frameCel);
 
                         ++i;
                     }
@@ -439,6 +412,32 @@ namespace AsepriteImporter.Importers
             }
 
             return generatedSprites;
+        }
+
+        void Blend(ref Texture2D baseLayer, FrameCel frameCel)
+        {
+            switch (frameCel.BlendMode)
+            {
+                case LayerBlendMode.Normal: baseLayer = Texture2DBlender.Normal(baseLayer, frameCel.Cel, frameCel.Opacity); break;
+                case LayerBlendMode.Multiply: baseLayer = Texture2DBlender.Multiply(baseLayer, frameCel.Cel, frameCel.Opacity); break;
+                case LayerBlendMode.Screen: baseLayer = Texture2DBlender.Screen(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Overlay: baseLayer = Texture2DBlender.Overlay(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Darken: baseLayer = Texture2DBlender.Darken(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Lighten: baseLayer = Texture2DBlender.Lighten(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.ColorDodge: baseLayer = Texture2DBlender.ColorDodge(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.ColorBurn: baseLayer = Texture2DBlender.ColorBurn(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.HardLight: baseLayer = Texture2DBlender.HardLight(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.SoftLight: baseLayer = Texture2DBlender.SoftLight(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Difference: baseLayer = Texture2DBlender.Difference(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Exclusion: baseLayer = Texture2DBlender.Exclusion(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Hue: baseLayer = Texture2DBlender.Hue(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Saturation: baseLayer = Texture2DBlender.Saturation(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Color: baseLayer = Texture2DBlender.Color(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Luminosity: baseLayer = Texture2DBlender.Luminosity(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Addition: baseLayer = Texture2DBlender.Addition(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Subtract: baseLayer = Texture2DBlender.Subtract(baseLayer, frameCel.Cel); break;
+                case LayerBlendMode.Divide: baseLayer = Texture2DBlender.Divide(baseLayer, frameCel.Cel); break;
+            }
         }
 
         WrapMode GetDefaultWrapMode(string animName)
