@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Aseprite;
 using Aseprite.Chunks;
 using Aseprite.Utils;
@@ -42,15 +41,30 @@ namespace AsepriteImporter.Importers
 
             if (GenerateSprites(filePath, fileName))
             {
-                GenerateAnimations(filePath);
+                var sprites = GetAllSpritesFromAssetFile(filePath);
+
+                if (Settings.buildAtlas) CreateSpriteAtlas(filePath, sprites);
+
+                GenerateAnimations(sprites, filePath);
 
                 generatedSprites = true;
             }
 
             if (Settings.splitLayers && GenerateSpritesSeparatedByLayer(out var layerPaths, out var layerNames))
             {
+                var allLayeredSprites = new List<Sprite>();
+
                 for (var i = 0; i < layerPaths.Length; ++i)
-                    GenerateAnimations(layerPaths[i], layerNames[i]);
+                {
+                    var sprites = GetAllSpritesFromAssetFile(layerPaths[i]);
+
+                    if (Settings.buildAtlas) allLayeredSprites.AddRange(sprites);
+
+                    GenerateAnimations(sprites, layerPaths[i], layerNames[i]);
+                }
+
+                if (Settings.buildAtlas)
+                    CreateSpriteAtlas(filePath, allLayeredSprites, true);
 
                 generatedSprites = true;
             }
@@ -58,18 +72,51 @@ namespace AsepriteImporter.Importers
             return generatedSprites;
         }
 
-        void GenerateAnimations(string path, string layerName = "")
+        void GenerateAnimations(List<Sprite> sprites, string path, string layerName = "")
         {
-            var sprites = GetAllSpritesFromAssetFile(path);
-
-            // TODO:
-            // if (Settings.buildAtlas) CreateSpriteAtlas(sprites);
-
             var clips = GenerateAnimationClips(path, sprites, layerName);
 
             // TODO:
             // if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips);
             // else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips);
+        }
+
+        void CreateSpriteAtlas(string path, List<Sprite> sprites, bool forLayers = false)
+        {
+            var atlasExt = ".spriteatlas";
+
+            if (forLayers) atlasExt = ".Layers" + atlasExt;
+
+            var atlasPath = path.Replace(".png", atlasExt);
+            var atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(atlasPath);
+
+            if (atlas == default)
+            {
+                atlas = new SpriteAtlas();
+                AssetDatabase.CreateAsset(atlas, atlasPath);
+            }
+
+            var texSetting = new SpriteAtlasTextureSettings();
+            texSetting.filterMode = FilterMode.Point;
+            texSetting.generateMipMaps = false;
+            texSetting.readable = TextureImportSettings.readable;
+
+            var packSetting = new SpriteAtlasPackingSettings();
+            packSetting.padding = 2;
+            packSetting.enableRotation = false;
+            packSetting.enableTightPacking = true;
+
+            var platformSetting = new TextureImporterPlatformSettings();
+            platformSetting.textureCompression = TextureImporterCompression.Uncompressed;
+            platformSetting.maxTextureSize = 8192;
+
+            atlas.SetTextureSettings(texSetting);
+            atlas.SetPackingSettings(packSetting);
+            atlas.SetPlatformSettings(platformSetting);
+            atlas.Add(sprites.ToArray());
+
+            EditorUtility.SetDirty(atlas);
+            AssetDatabase.SaveAssets();
         }
 
         List<AnimationClip> GenerateAnimationClips(string path, List<Sprite> sprites, string layerName = "")
@@ -725,37 +772,6 @@ namespace AsepriteImporter.Importers
             ) return WrapMode.Loop;
 
             return WrapMode.Once;
-        }
-
-        void CreateSpriteAtlas(List<Sprite> sprites)
-        {
-            var path = directoryName + "/" + fileName + ".spriteatlas";
-            var atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(path);
-            if (atlas == default)
-            {
-                atlas = new SpriteAtlas();
-                AssetDatabase.CreateAsset(atlas, path);
-            }
-
-            var texSetting = new SpriteAtlasTextureSettings();
-            texSetting.filterMode = FilterMode.Point;
-            texSetting.generateMipMaps = false;
-
-            var packSetting = new SpriteAtlasPackingSettings();
-            packSetting.padding = 2;
-            packSetting.enableRotation = false;
-            packSetting.enableTightPacking = true;
-
-            var platformSetting = new TextureImporterPlatformSettings();
-            platformSetting.textureCompression = TextureImporterCompression.Uncompressed;
-
-            atlas.SetTextureSettings(texSetting);
-            atlas.SetPackingSettings(packSetting);
-            atlas.SetPlatformSettings(platformSetting);
-            atlas.Add(sprites.ToArray());
-
-            EditorUtility.SetDirty(atlas);
-            AssetDatabase.SaveAssets();
         }
     }
 }

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Aseprite;
 using AsepriteImporter.Data;
-using AsepriteImporter.DataProviders;
 using AsepriteImporter.Settings;
 using UnityEditor;
-using UnityEditor.U2D.Sprites;
 using UnityEngine;
 
 #if UNITY_2020_2_OR_NEWER
@@ -63,7 +60,8 @@ namespace AsepriteImporter.Importers
             Context.AddObjectToAsset("Texture", Texture);
             Context.SetMainObject(Texture);
 
-            foreach (Sprite sprite in sprites) Context.AddObjectToAsset(sprite.name, sprite);
+            foreach (var sprite in sprites)
+                Context.AddObjectToAsset(sprite.name, sprite);
 
             if (Settings.generateAnimations)
             {
