@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Aseprite;
 using Aseprite.Chunks;
 using Aseprite.Utils;
@@ -41,21 +42,304 @@ namespace AsepriteImporter.Importers
 
             if (GenerateSprites(filePath, fileName))
             {
-                // TODO: animation
-
-                // GeneratorAnimations();
+                GenerateAnimations(filePath);
 
                 generatedSprites = true;
             }
 
-            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer())
+            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer(out var layerPaths, out var layerNames))
             {
-                // TODO: animation
+                for (var i = 0; i < layerPaths.Length; ++i)
+                    GenerateAnimations(layerPaths[i], layerNames[i]);
 
                 generatedSprites = true;
             }
 
             return generatedSprites;
+        }
+
+        void GenerateAnimations(string path, string layerName = "")
+        {
+            var sprites = GetAllSpritesFromAssetFile(path);
+
+            // TODO:
+            // if (Settings.buildAtlas) CreateSpriteAtlas(sprites);
+
+            var clips = GenerateAnimationClips(path, sprites, layerName);
+
+            // TODO:
+            // if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips);
+            // else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips);
+        }
+
+        List<AnimationClip> GenerateAnimationClips(string path, List<Sprite> sprites, string layerName = "")
+        {
+            var clips = new List<AnimationClip>();
+            var frameTagMap = AsepriteFile.GetFrameTags().ToDictionary(f => f.TagName, f => f);
+            var spriteMap = sprites.ToDictionary(s => Int32.Parse(s.name.Split(Settings.tagDelimiter)[1]), s => s);
+
+            foreach (var sprite in sprites)
+            {
+                var spriteNameParts = sprite.name.Split(Settings.tagDelimiter);
+
+                if (
+                    spriteNameParts == default ||
+                    spriteNameParts.Length < 2
+                ) continue;
+
+                var tag = spriteNameParts[0];
+
+                if (!frameTagMap.ContainsKey(tag)) continue;
+
+                var frameTag = frameTagMap[tag];
+
+                if (frameTag == default) continue;
+
+                var animPath = path
+                    .Replace("/" + fileName + ".png", "")
+                    .Replace("/" + layerName + ".png", "") + "/" + tag + ".anim";
+
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(animPath);
+
+                if (clip == default)
+                {
+                    clip = new AnimationClip();
+                    AssetDatabase.CreateAsset(clip, animPath);
+                    clip.wrapMode = GetDefaultWrapMode(tag);
+                }
+                else
+                {
+                    var animSettings = AnimationUtility.GetAnimationClipSettings(clip);
+                    clip.wrapMode = animSettings.loopTime ? WrapMode.Loop : WrapMode.Once;
+                }
+
+                clip.name = tag;
+                clip.frameRate = 25;
+
+                var editorBinding = new EditorCurveBinding();
+                editorBinding.path = "";
+                editorBinding.propertyName = "m_Sprite";
+
+                switch (Settings.bindType)
+                {
+                    case AseAnimationBindType.SpriteRenderer:
+                        editorBinding.type = typeof(SpriteRenderer);
+                        break;
+                    case AseAnimationBindType.UIImage:
+                        editorBinding.type = typeof(Image);
+                        break;
+                }
+
+                var length = frameTag.FrameTo - frameTag.FrameFrom + 1;
+                var spriteKeyFrames = new ObjectReferenceKeyframe[length + 1];
+                var transformCurveX = new Dictionary<string, AnimationCurve>();
+                var transformCurveY = new Dictionary<string, AnimationCurve>();
+
+                var time = 0f;
+                int from = (frameTag.Animation != LoopAnimation.Reverse) ? frameTag.FrameFrom : frameTag.FrameTo;
+                var step = (frameTag.Animation != LoopAnimation.Reverse) ? 1 : -1;
+                var frame = from;
+
+                var metadatas = AsepriteFile.GetMetaData(Settings.spritePivot, Settings.pixelsPerUnit);
+
+                for (var i = 0; i < length; ++i)
+                {
+                    if (i >= length) frame = from;
+
+                    var objectRefFrame = new ObjectReferenceKeyframe();
+                    objectRefFrame.time = time;
+
+                    if (!spriteMap.ContainsKey(frame)) continue;
+
+                    objectRefFrame.value = spriteMap[frame];
+
+                    time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
+                    spriteKeyFrames[i] = objectRefFrame;
+
+                    foreach (var metadata in metadatas)
+                    {
+                        if (
+                            metadata.Type != MetaDataType.TRANSFORM ||
+                            !metadata.Transforms.ContainsKey(frame)
+                        ) continue;
+
+                        var childTransform = metadata.Args[0];
+
+                        if (!transformCurveX.ContainsKey(childTransform))
+                        {
+                            transformCurveX[childTransform] = new AnimationCurve();
+                            transformCurveY[childTransform] = new AnimationCurve();
+                        }
+
+                        var pos = metadata.Transforms[frame];
+
+                        transformCurveX[childTransform].AddKey(i, pos.x);
+                        transformCurveY[childTransform].AddKey(i, pos.y);
+                    }
+
+                    frame += step;
+                }
+
+                var lastFrameIndex = frame - step;
+
+                if (spriteMap.ContainsKey(lastFrameIndex))
+                {
+                    var frameTime = 1f / clip.frameRate;
+                    var lastFrame = new ObjectReferenceKeyframe();
+
+                    lastFrame.time = time - frameTime;
+                    lastFrame.value = spriteMap[lastFrameIndex];
+
+                    spriteKeyFrames[spriteKeyFrames.Length - 1] = lastFrame;
+                }
+
+                foreach (var metadata in metadatas)
+                {
+                    if (
+                        metadata.Type != MetaDataType.TRANSFORM ||
+                        !metadata.Transforms.ContainsKey(frame - step)
+                    ) continue;
+
+                    var childTransform = metadata.Args[0];
+                    var pos = metadata.Transforms[frame - step];
+                    transformCurveX[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.x);
+                    transformCurveY[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.y);
+                }
+
+                AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, spriteKeyFrames);
+
+                foreach (var childTransform in transformCurveX.Keys)
+                {
+                    var bindingX = new EditorCurveBinding
+                    {
+                        path = childTransform,
+                        type = typeof(Transform),
+                        propertyName = "m_LocalPosition.x"
+                    };
+
+                    var bindingY = new EditorCurveBinding
+                    {
+                        path = childTransform,
+                        type = typeof(Transform),
+                        propertyName = "m_LocalPosition.y"
+                    };
+
+                    MakeConstant(transformCurveX[childTransform]);
+                    AnimationUtility.SetEditorCurve(clip, bindingX, transformCurveX[childTransform]);
+
+                    MakeConstant(transformCurveY[childTransform]);
+                    AnimationUtility.SetEditorCurve(clip, bindingY, transformCurveY[childTransform]);
+                }
+
+                var clipSettings = AnimationUtility.GetAnimationClipSettings(clip);
+                clipSettings.loopTime = (clip.wrapMode == WrapMode.Loop);
+
+                AnimationUtility.SetAnimationClipSettings(clip, clipSettings);
+                EditorUtility.SetDirty(clip);
+
+                clips.Add(clip);
+            }
+
+            return clips;
+        }
+
+        static void MakeConstant(AnimationCurve curve)
+        {
+            for (var i = 0; i < curve.length; ++i)
+                AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.Constant);
+        }
+
+        static List<Sprite> GetAllSpritesFromAssetFile(string path)
+        {
+            var assets = AssetDatabase.LoadAllAssetsAtPath(path);
+            var sprites = new List<Sprite>();
+
+            foreach (var item in assets)
+                if (item is Sprite)
+                    sprites.Add(item as Sprite);
+
+            return sprites;
+        }
+
+        void CreateAnimatorController(List<AnimationClip> animations)
+        {
+            var path = directoryName + "/" + fileName + ".controller";
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+
+            if (controller == default)
+            {
+                controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+                controller.AddLayer("Default");
+
+                foreach (var animation in animations)
+                {
+                    var stateName = animation.name;
+                    stateName = stateName.Replace(fileName + "_", "");
+
+                    var state = controller.layers[0].stateMachine.AddState(stateName);
+                    state.motion = animation;
+                }
+            }
+            else
+            {
+                var clips = new Dictionary<string, AnimationClip>();
+                foreach (var anim in animations)
+                {
+                    var stateName = anim.name;
+                    stateName = stateName.Replace(fileName + "_", "");
+                    clips[stateName] = anim;
+                }
+
+                var childStates = controller.layers[0].stateMachine.states;
+                foreach (var childState in childStates)
+                    if (clips.TryGetValue(childState.state.name, out AnimationClip clip))
+                        childState.state.motion = clip;
+            }
+
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
+        }
+
+        void CreateAnimatorOverrideController(List<AnimationClip> animations)
+        {
+            var path = directoryName + "/" + fileName + ".overrideController";
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(path);
+            var baseController = controller?.runtimeAnimatorController;
+
+            if (controller == default)
+            {
+                controller = new AnimatorOverrideController();
+                AssetDatabase.CreateAsset(controller, path);
+                baseController = Settings.baseAnimator;
+            }
+
+            if (baseController == default)
+            {
+                Debug.LogError("Can not make override controller");
+                return;
+            }
+
+            controller.runtimeAnimatorController = baseController;
+            var clips = new Dictionary<string, AnimationClip>();
+            foreach (var anim in animations)
+            {
+                var stateName = anim.name;
+                stateName = stateName.Replace(fileName + "_", "");
+                clips[stateName] = anim;
+            }
+
+            var clipPairs = new List<KeyValuePair<AnimationClip, AnimationClip>>(controller.overridesCount);
+            controller.GetOverrides(clipPairs);
+
+            foreach (var pair in clipPairs)
+            {
+                string animationName = pair.Key.name;
+                if (clips.TryGetValue(animationName, out AnimationClip clip))
+                    controller[animationName] = clip;
+            }
+
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
         }
 
         void BuildAtlas(string acePath)
@@ -185,9 +469,7 @@ namespace AsepriteImporter.Importers
 
             if (importer == default) return false;
 
-            // TODO: dynamically set max texture size
-            // note that anything above 8192 cannot be set to readable
-            importer.maxTextureSize = 8192;
+            importer.maxTextureSize = 8192; // anything above 8192 cannot be readable
 
             importer.textureType = TextureImporterType.Sprite;
             importer.spritePixelsPerUnit = Settings.pixelsPerUnit;
@@ -242,7 +524,6 @@ namespace AsepriteImporter.Importers
             }
 
             var localFrame = 0;
-            var tagCountMap = new Dictionary<string, int>();
             var frameTags = AsepriteFile.GetFrameTags();
             var done = false;
 
@@ -279,11 +560,8 @@ namespace AsepriteImporter.Importers
                         }
                     }
 
-                    if (tagCountMap.ContainsKey(tag)) ++tagCountMap[tag];
-                    else tagCountMap.TryAdd(tag, 0);
-
                     var meta = new SpriteMetaData();
-                    meta.name = tag + tagCountMap[tag].ToString("D");
+                    meta.name = tag + Settings.tagDelimiter + globalFrame.ToString("D");
                     meta.alignment = Settings.spriteAlignment;
                     meta.pivot = Settings.spritePivot;
                     meta.rect = new Rect(
@@ -304,20 +582,7 @@ namespace AsepriteImporter.Importers
             return metadata;
         }
 
-        void GeneratorAnimations()
-        {
-            var sprites = GetAllSpritesFromAssetFile(filePath);
-            sprites.Sort((lhs, rhs) => String.CompareOrdinal(lhs.name, rhs.name));
-
-            var clips = GenerateAnimations(sprites);
-
-            if (Settings.buildAtlas) CreateSpriteAtlas(sprites);
-
-            if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips);
-            else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips);
-        }
-
-        bool GenerateSpritesSeparatedByLayer()
+        bool GenerateSpritesSeparatedByLayer(out string[] layerPaths, out string[] layerNames)
         {
             var layers = AsepriteFile.GetLayersAsFrames();
             var parentPath = directoryName + "/";
@@ -388,6 +653,8 @@ namespace AsepriteImporter.Importers
                 layers = mergedLayers;
             }
 
+            List<string> layerPathList = new();
+
             foreach (var layer in layers)
             {
                 var layerDirPath = parentPath + layer.Name;
@@ -408,8 +675,15 @@ namespace AsepriteImporter.Importers
                 WriteTexture(layerFilePath, atlas);
 
                 if (GenerateSprites(layerFilePath, layerFilename, layer.FrameCels))
+                {
                     generatedSprites = true;
+
+                    layerPathList.Add(layerFilePath);
+                }
             }
+
+            layerPaths = layerPathList.ToArray();
+            layerNames = layers.Select(l => l.Name).ToArray();
 
             return generatedSprites;
         }
@@ -451,250 +725,6 @@ namespace AsepriteImporter.Importers
             ) return WrapMode.Loop;
 
             return WrapMode.Once;
-        }
-
-        List<AnimationClip> GenerateAnimations(List<Sprite> sprites, string layerPath = "")
-        {
-            var res = new List<AnimationClip>();
-            var animations = AsepriteFile.GetFrameTags();
-
-            if (animations.Length <= 0) return res;
-
-            var metadatas = AsepriteFile.GetMetaData(Settings.spritePivot, Settings.pixelsPerUnit);
-            var index = 0;
-
-            foreach (var animation in animations)
-            {
-                var path = directoryName + "/" + fileName + "/" + layerPath + animation.TagName + ".anim";
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
-
-                if (clip == default)
-                {
-                    clip = new AnimationClip();
-                    AssetDatabase.CreateAsset(clip, path);
-                    clip.wrapMode = GetDefaultWrapMode(animation.TagName);
-                }
-                else
-                {
-                    var animSettings = AnimationUtility.GetAnimationClipSettings(clip);
-                    clip.wrapMode = animSettings.loopTime ? WrapMode.Loop : WrapMode.Once;
-                }
-
-                clip.name = animation.TagName;
-                clip.frameRate = 25;
-
-                var editorBinding = new EditorCurveBinding();
-                editorBinding.path = "";
-                editorBinding.propertyName = "m_Sprite";
-
-                switch (Settings.bindType)
-                {
-                    case AseAnimationBindType.SpriteRenderer:
-                        editorBinding.type = typeof(SpriteRenderer);
-                        break;
-                    case AseAnimationBindType.UIImage:
-                        editorBinding.type = typeof(Image);
-                        break;
-                }
-
-                // plus last frame to keep the duration
-                var length = animation.FrameTo - animation.FrameFrom + 1;
-                var spriteKeyFrames = new ObjectReferenceKeyframe[length + 1];
-                var transformCurveX = new Dictionary<string, AnimationCurve>();
-                var transformCurveY = new Dictionary<string, AnimationCurve>();
-
-                var time = 0f;
-                int from = (animation.Animation != LoopAnimation.Reverse) ? animation.FrameFrom : animation.FrameTo;
-                var step = (animation.Animation != LoopAnimation.Reverse) ? 1 : -1;
-                var keyIndex = from;
-
-                for (var i = 0; i < length; ++i)
-                {
-                    if (i >= length) keyIndex = from;
-
-                    var frame = new ObjectReferenceKeyframe();
-                    frame.time = time;
-                    frame.value = sprites[keyIndex];
-
-                    time += AsepriteFile.Frames[keyIndex].FrameDuration / 1000f;
-                    spriteKeyFrames[i] = frame;
-
-                    foreach (var metadata in metadatas)
-                    {
-                        if (
-                            metadata.Type != MetaDataType.TRANSFORM ||
-                            !metadata.Transforms.ContainsKey(keyIndex)
-                        ) continue;
-
-                        var childTransform = metadata.Args[0];
-
-                        if (!transformCurveX.ContainsKey(childTransform))
-                        {
-                            transformCurveX[childTransform] = new AnimationCurve();
-                            transformCurveY[childTransform] = new AnimationCurve();
-                        }
-
-                        var pos = metadata.Transforms[keyIndex];
-
-                        transformCurveX[childTransform].AddKey(i, pos.x);
-                        transformCurveY[childTransform].AddKey(i, pos.y);
-                    }
-
-                    keyIndex += step;
-                }
-
-                var frameTime = 1f / clip.frameRate;
-                var lastFrame = new ObjectReferenceKeyframe();
-                lastFrame.time = time - frameTime;
-                lastFrame.value = sprites[keyIndex - step];
-
-                spriteKeyFrames[spriteKeyFrames.Length - 1] = lastFrame;
-                foreach (var metadata in metadatas)
-                {
-                    if (
-                        metadata.Type != MetaDataType.TRANSFORM ||
-                        !metadata.Transforms.ContainsKey(keyIndex - step)
-                    ) continue;
-
-                    var childTransform = metadata.Args[0];
-                    var pos = metadata.Transforms[keyIndex - step];
-                    transformCurveX[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.x);
-                    transformCurveY[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.y);
-                }
-
-                AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, spriteKeyFrames);
-                foreach (var childTransform in transformCurveX.Keys)
-                {
-                    var bindingX = new EditorCurveBinding
-                    {
-                        path = childTransform,
-                        type = typeof(Transform),
-                        propertyName = "m_LocalPosition.x"
-                    };
-
-                    var bindingY = new EditorCurveBinding
-                    {
-                        path = childTransform,
-                        type = typeof(Transform),
-                        propertyName = "m_LocalPosition.y"
-                    };
-
-                    MakeConstant(transformCurveX[childTransform]);
-                    AnimationUtility.SetEditorCurve(clip, bindingX, transformCurveX[childTransform]);
-
-                    MakeConstant(transformCurveY[childTransform]);
-                    AnimationUtility.SetEditorCurve(clip, bindingY, transformCurveY[childTransform]);
-                }
-
-                var clipSettings = AnimationUtility.GetAnimationClipSettings(clip);
-                clipSettings.loopTime = (clip.wrapMode == WrapMode.Loop);
-
-                AnimationUtility.SetAnimationClipSettings(clip, clipSettings);
-                EditorUtility.SetDirty(clip);
-                ++index;
-                res.Add(clip);
-            }
-
-            return res;
-        }
-
-        static void MakeConstant(AnimationCurve curve)
-        {
-            for (var i = 0; i < curve.length; ++i)
-                AnimationUtility.SetKeyRightTangentMode(curve, i, AnimationUtility.TangentMode.Constant);
-        }
-
-        static List<Sprite> GetAllSpritesFromAssetFile(string imageFilename)
-        {
-            var assets = AssetDatabase.LoadAllAssetsAtPath(imageFilename);
-            var sprites = new List<Sprite>();
-
-            foreach (var item in assets) // make sure we only grab valid sprites here
-                if (item is Sprite)
-                    sprites.Add(item as Sprite);
-
-            return sprites;
-        }
-
-        void CreateAnimatorController(List<AnimationClip> animations)
-        {
-            var path = directoryName + "/" + fileName + ".controller";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
-
-            if (controller == default)
-            {
-                controller = AnimatorController.CreateAnimatorControllerAtPath(path);
-                controller.AddLayer("Default");
-
-                foreach (var animation in animations)
-                {
-                    var stateName = animation.name;
-                    stateName = stateName.Replace(fileName + "_", "");
-
-                    var state = controller.layers[0].stateMachine.AddState(stateName);
-                    state.motion = animation;
-                }
-            }
-            else
-            {
-                var clips = new Dictionary<string, AnimationClip>();
-                foreach (var anim in animations)
-                {
-                    var stateName = anim.name;
-                    stateName = stateName.Replace(fileName + "_", "");
-                    clips[stateName] = anim;
-                }
-
-                var childStates = controller.layers[0].stateMachine.states;
-                foreach (var childState in childStates)
-                    if (clips.TryGetValue(childState.state.name, out AnimationClip clip))
-                        childState.state.motion = clip;
-            }
-
-            EditorUtility.SetDirty(controller);
-            AssetDatabase.SaveAssets();
-        }
-
-        void CreateAnimatorOverrideController(List<AnimationClip> animations)
-        {
-            var path = directoryName + "/" + fileName + ".overrideController";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(path);
-            var baseController = controller?.runtimeAnimatorController;
-
-            if (controller == default)
-            {
-                controller = new AnimatorOverrideController();
-                AssetDatabase.CreateAsset(controller, path);
-                baseController = Settings.baseAnimator;
-            }
-
-            if (baseController == default)
-            {
-                Debug.LogError("Can not make override controller");
-                return;
-            }
-
-            controller.runtimeAnimatorController = baseController;
-            var clips = new Dictionary<string, AnimationClip>();
-            foreach (var anim in animations)
-            {
-                var stateName = anim.name;
-                stateName = stateName.Replace(fileName + "_", "");
-                clips[stateName] = anim;
-            }
-
-            var clipPairs = new List<KeyValuePair<AnimationClip, AnimationClip>>(controller.overridesCount);
-            controller.GetOverrides(clipPairs);
-
-            foreach (var pair in clipPairs)
-            {
-                string animationName = pair.Key.name;
-                if (clips.TryGetValue(animationName, out AnimationClip clip))
-                    controller[animationName] = clip;
-            }
-
-            EditorUtility.SetDirty(controller);
-            AssetDatabase.SaveAssets();
         }
 
         void CreateSpriteAtlas(List<Sprite> sprites)

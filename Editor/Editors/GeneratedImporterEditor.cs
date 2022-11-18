@@ -45,9 +45,11 @@ namespace AsepriteImporter.Editors
                 {
                     PivotPopup("Pivot");
 
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tagDelimiter"));
 
                     // TODO: switch below to TextureSettings
+
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
 
                     var splitLayers = SerializedObject.FindProperty(SettingsPath + "splitLayers");
 
