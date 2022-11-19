@@ -722,11 +722,11 @@ namespace AsepriteImporter.Importers
         {
             animName = animName.ToLower();
 
-            if (
-                animName.IndexOf("walk", StringComparison.Ordinal) >= 0 ||
-                animName.IndexOf("run", StringComparison.Ordinal) >= 0 ||
-                animName.IndexOf("idle", StringComparison.Ordinal) >= 0
-            ) return WrapMode.Loop;
+            var defaults = new string[] { "walk", "run", "crawl", "idle" };
+
+            foreach (var def in defaults)
+                if (animName.IndexOf(def, StringComparison.Ordinal) >= 0)
+                    return WrapMode.Loop;
 
             return WrapMode.Once;
         }
