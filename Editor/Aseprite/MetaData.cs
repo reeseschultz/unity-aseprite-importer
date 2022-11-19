@@ -4,24 +4,24 @@ using UnityEngine;
 
 namespace Aseprite
 {
-    public enum MetaDataType { UNKNOWN, TRANSFORM };
+    public enum MetadataType { UNKNOWN, TRANSFORM };
 
-    public class MetaData
+    public class Metadata
     {
-        static public string MetaDataChar = "@";
+        static public string MetadataChar = "@";
 
-        public MetaDataType Type { get; private set; } = default;
+        public MetadataType Type { get; private set; } = default;
         public Dictionary<int, Vector2> Transforms { get; private set; } = default; // average position per frames
         public List<string> Args { get; private set; } = default;
 
-        public MetaData(string layerName)
+        public Metadata(string layerName)
         {
             var regex = new Regex("@transform\\(\"(.*)\"\\)");
             var match = regex.Match(layerName);
 
             if (match.Success)
             {
-                Type = MetaDataType.TRANSFORM;
+                Type = MetadataType.TRANSFORM;
                 Args = new List<string>();
                 Args.Add(match.Groups[1].Value);
                 Transforms = new Dictionary<int, Vector2>();

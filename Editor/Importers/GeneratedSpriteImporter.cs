@@ -122,25 +122,13 @@ namespace AsepriteImporter.Importers
         List<AnimationClip> GenerateAnimationClips(string path, List<Sprite> sprites, string layerName = "")
         {
             var clips = new List<AnimationClip>();
-            var frameTagMap = AsepriteFile.GetFrameTags().ToDictionary(f => f.TagName, f => f);
-            var spriteMap = sprites.ToDictionary(s => Int32.Parse(s.name.Split(Settings.tagDelimiter)[1]), s => s);
+            var frameTagSet = AsepriteFile.GetFrameTags().ToHashSet();
+            var metadata = AsepriteFile.GetMetadata(Settings.spritePivot, Settings.pixelsPerUnit);
 
-            foreach (var sprite in sprites)
+            foreach (var frameTag in frameTagSet)
             {
-                var spriteNameParts = sprite.name.Split(Settings.tagDelimiter);
-
-                if (
-                    spriteNameParts == default ||
-                    spriteNameParts.Length < 2
-                ) continue;
-
-                var tag = spriteNameParts[0];
-
-                if (!frameTagMap.ContainsKey(tag)) continue;
-
-                var frameTag = frameTagMap[tag];
-
-                if (frameTag == default) continue;
+                var tag = frameTag.TagName;
+                var spritesForTag = sprites.FindAll(s => s.name.Split(Settings.tagDelimiter)[0] == tag);
 
                 var animPath = path
                     .Replace("/" + fileName + ".png", "")
@@ -177,40 +165,30 @@ namespace AsepriteImporter.Importers
                         break;
                 }
 
-                var length = frameTag.FrameTo - frameTag.FrameFrom + 1;
-                var spriteKeyFrames = new ObjectReferenceKeyframe[length + 1];
+                var time = 0f;
+                var keyFrames = new ObjectReferenceKeyframe[spritesForTag.Count];
                 var transformCurveX = new Dictionary<string, AnimationCurve>();
                 var transformCurveY = new Dictionary<string, AnimationCurve>();
+                var keyFrameIndex = 0;
 
-                var time = 0f;
-                int from = (frameTag.Animation != LoopAnimation.Reverse) ? frameTag.FrameFrom : frameTag.FrameTo;
-                var step = (frameTag.Animation != LoopAnimation.Reverse) ? 1 : -1;
-                var frame = from;
-
-                var metadatas = AsepriteFile.GetMetaData(Settings.spritePivot, Settings.pixelsPerUnit);
-
-                for (var i = 0; i < length; ++i)
+                foreach (var sprite in spritesForTag)
                 {
-                    if (i >= length) frame = from;
+                    keyFrames[keyFrameIndex] = new ObjectReferenceKeyframe
+                    {
+                        time = time,
+                        value = sprite
+                    };
 
-                    var objectRefFrame = new ObjectReferenceKeyframe();
-                    objectRefFrame.time = time;
+                    var frame = Int32.Parse(sprite.name.Split(Settings.tagDelimiter)[1]);
 
-                    if (!spriteMap.ContainsKey(frame)) continue;
-
-                    objectRefFrame.value = spriteMap[frame];
-
-                    time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
-                    spriteKeyFrames[i] = objectRefFrame;
-
-                    foreach (var metadata in metadatas)
+                    foreach (var datum in metadata)
                     {
                         if (
-                            metadata.Type != MetaDataType.TRANSFORM ||
-                            !metadata.Transforms.ContainsKey(frame)
+                            datum.Type != MetadataType.TRANSFORM ||
+                            !datum.Transforms.ContainsKey(frame)
                         ) continue;
 
-                        var childTransform = metadata.Args[0];
+                        var childTransform = datum.Args[0];
 
                         if (!transformCurveX.ContainsKey(childTransform))
                         {
@@ -218,42 +196,21 @@ namespace AsepriteImporter.Importers
                             transformCurveY[childTransform] = new AnimationCurve();
                         }
 
-                        var pos = metadata.Transforms[frame];
+                        var pos = datum.Transforms[frame];
 
-                        transformCurveX[childTransform].AddKey(i, pos.x);
-                        transformCurveY[childTransform].AddKey(i, pos.y);
+                        transformCurveX[childTransform].AddKey(keyFrameIndex, pos.x);
+                        transformCurveY[childTransform].AddKey(keyFrameIndex, pos.y);
                     }
 
-                    frame += step;
+                    time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
+
+                    ++keyFrameIndex;
                 }
 
-                var lastFrameIndex = frame - step;
+                if (frameTag.Animation == LoopAnimation.Reverse)
+                    keyFrames = keyFrames.Reverse().ToArray();
 
-                if (spriteMap.ContainsKey(lastFrameIndex))
-                {
-                    var frameTime = 1f / clip.frameRate;
-                    var lastFrame = new ObjectReferenceKeyframe();
-
-                    lastFrame.time = time - frameTime;
-                    lastFrame.value = spriteMap[lastFrameIndex];
-
-                    spriteKeyFrames[spriteKeyFrames.Length - 1] = lastFrame;
-                }
-
-                foreach (var metadata in metadatas)
-                {
-                    if (
-                        metadata.Type != MetaDataType.TRANSFORM ||
-                        !metadata.Transforms.ContainsKey(frame - step)
-                    ) continue;
-
-                    var childTransform = metadata.Args[0];
-                    var pos = metadata.Transforms[frame - step];
-                    transformCurveX[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.x);
-                    transformCurveY[childTransform].AddKey(spriteKeyFrames.Length - 1, pos.y);
-                }
-
-                AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, spriteKeyFrames);
+                AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, keyFrames);
 
                 foreach (var childTransform in transformCurveX.Keys)
                 {

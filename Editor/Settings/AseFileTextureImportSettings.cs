@@ -118,7 +118,7 @@ namespace AsepriteImporter.Settings
         public TextureImporterSingleChannelComponent singleChannelComponent = default;
 
         //     Is texture data readable from scripts.
-        public bool readable = default;
+        public bool readable = true;
 
         //     Enable mipmap streaming for this texture.
         public bool streamingMipmaps = default;

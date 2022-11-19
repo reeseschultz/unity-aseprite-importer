@@ -294,9 +294,9 @@ namespace Aseprite
             return animations.ToArray();
         }
 
-        public MetaData[] GetMetaData(Vector2 spritePivot, int pixelsPerUnit)
+        public Metadata[] GetMetadata(Vector2 spritePivot, int pixelsPerUnit)
         {
-            var metadatas = new Dictionary<int, MetaData>();
+            var metadata = new Dictionary<int, Metadata>();
 
             for (var index = 0; index < Frames.Count; ++index)
             {
@@ -310,11 +310,11 @@ namespace Aseprite
                     var layerIndex = cels[i].LayerIndex;
                     var layer = layers[layerIndex];
 
-                    if (!layer.LayerName.StartsWith(MetaData.MetaDataChar)) continue; // only read metadata layer
+                    if (!layer.LayerName.StartsWith(Metadata.MetadataChar)) continue;
 
-                    if (!metadatas.ContainsKey(layerIndex)) metadatas[layerIndex] = new MetaData(layer.LayerName);
+                    if (!metadata.ContainsKey(layerIndex)) metadata[layerIndex] = new Metadata(layer.LayerName);
 
-                    var metadata = metadatas[layerIndex];
+                    var datum = metadata[layerIndex];
                     var cel = cels[i];
                     var center = Vector2.zero;
                     var pixelCount = 0;
@@ -342,12 +342,12 @@ namespace Aseprite
                         var pivot = Vector2.Scale(spritePivot, new Vector2(Header.Width, Header.Height));
                         var posWorld = (center - pivot) / pixelsPerUnit + Vector2.one * 0.5f / pixelsPerUnit; //center pos in middle of pixels
 
-                        metadata.Transforms.Add(index, posWorld);
+                        datum.Transforms.Add(index, posWorld);
                     }
                 }
             }
 
-            return metadatas.Values.ToArray();
+            return metadata.Values.ToArray();
         }
 
         public Texture2D GetTextureAtlas(List<Texture2D> frames)
