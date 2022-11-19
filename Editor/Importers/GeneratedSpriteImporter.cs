@@ -76,9 +76,8 @@ namespace AsepriteImporter.Importers
         {
             var clips = GenerateAnimationClips(path, sprites, layerName);
 
-            // TODO:
-            // if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips);
-            // else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips);
+            if (Settings.animType == AseAnimatorType.AnimatorController) CreateAnimatorController(clips, path);
+            else if (Settings.animType == AseAnimatorType.AnimatorOverrideController) CreateAnimatorOverrideController(clips, path);
         }
 
         void CreateSpriteAtlas(string path, List<Sprite> sprites, bool forLayers = false)
@@ -267,14 +266,14 @@ namespace AsepriteImporter.Importers
             return sprites;
         }
 
-        void CreateAnimatorController(List<AnimationClip> animations)
+        void CreateAnimatorController(List<AnimationClip> animations, string path)
         {
-            var path = directoryName + "/" + fileName + ".controller";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            var animPath = path.Replace(".png", "") + ".controller";
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(animPath);
 
             if (controller == default)
             {
-                controller = AnimatorController.CreateAnimatorControllerAtPath(path);
+                controller = AnimatorController.CreateAnimatorControllerAtPath(animPath);
                 controller.AddLayer("Default");
 
                 foreach (var animation in animations)
@@ -306,22 +305,22 @@ namespace AsepriteImporter.Importers
             AssetDatabase.SaveAssets();
         }
 
-        void CreateAnimatorOverrideController(List<AnimationClip> animations)
+        void CreateAnimatorOverrideController(List<AnimationClip> animations, string path)
         {
-            var path = directoryName + "/" + fileName + ".overrideController";
-            var controller = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(path);
+            var animPath = path.Replace(".png", "") + ".Override.controller";
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(animPath);
             var baseController = controller?.runtimeAnimatorController;
 
             if (controller == default)
             {
                 controller = new AnimatorOverrideController();
-                AssetDatabase.CreateAsset(controller, path);
+                AssetDatabase.CreateAsset(controller, animPath);
                 baseController = Settings.baseAnimator;
             }
 
             if (baseController == default)
             {
-                Debug.LogError("Can not make override controller");
+                Debug.LogError("Cannot make override controller without base controller");
                 return;
             }
 
