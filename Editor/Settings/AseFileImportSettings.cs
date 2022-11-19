@@ -66,6 +66,8 @@ namespace AsepriteImporter
         [SerializeField] public AnimatorController baseAnimator = default;
         [SerializeField] public bool buildAtlas = default;
 
+        [SerializeField] public float samplesPerSecond = 25;
+
         [SerializeField] public bool splitLayers = default;
         [SerializeField] public List<LayerMergeOptions> layerMergeOptions = default;
 

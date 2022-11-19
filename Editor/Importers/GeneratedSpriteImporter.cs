@@ -139,7 +139,9 @@ namespace AsepriteImporter.Importers
                 if (clip == default)
                 {
                     clip = new AnimationClip();
+
                     AssetDatabase.CreateAsset(clip, animPath);
+
                     clip.wrapMode = GetDefaultWrapMode(tag);
                 }
                 else
@@ -148,8 +150,8 @@ namespace AsepriteImporter.Importers
                     clip.wrapMode = animSettings.loopTime ? WrapMode.Loop : WrapMode.Once;
                 }
 
+                clip.frameRate = Settings.samplesPerSecond;
                 clip.name = tag;
-                clip.frameRate = 25;
 
                 var editorBinding = new EditorCurveBinding();
                 editorBinding.path = "";

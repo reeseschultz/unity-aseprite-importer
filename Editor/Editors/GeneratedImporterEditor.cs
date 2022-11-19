@@ -45,20 +45,8 @@ namespace AsepriteImporter.Editors
                 {
                     PivotPopup("Pivot");
 
-                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tagDelimiter"));
-
-                    // TODO: switch below to TextureSettings
-
                     EditorGUILayout.PropertyField(SerializedObject.FindProperty(TextureSettingsPath + "readable"));
 
-                    var splitLayers = SerializedObject.FindProperty(SettingsPath + "splitLayers");
-
-                    EditorGUILayout.PropertyField(splitLayers);
-
-                    if (splitLayers.boolValue)
-                    {
-                        EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "layerMergeOptions"));
-                    }
                 }
 
                 --EditorGUI.indentLevel;
@@ -70,6 +58,11 @@ namespace AsepriteImporter.Editors
             {
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
+
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "samplesPerSecond"));
+
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tagDelimiter"));
+
                 var bindTypeProperty = SerializedObject.FindProperty(SettingsPath + "bindType");
                 var bindType = (AseAnimationBindType)bindTypeProperty.intValue;
 
@@ -84,6 +77,15 @@ namespace AsepriteImporter.Editors
                     EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "baseAnimator"));
 
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "buildAtlas"));
+
+                var splitLayers = SerializedObject.FindProperty(SettingsPath + "splitLayers");
+
+                EditorGUILayout.PropertyField(splitLayers);
+
+                if (splitLayers.boolValue)
+                {
+                    EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "layerMergeOptions"));
+                }
 
                 if (EditorGUI.EndChangeCheck())
                 {
