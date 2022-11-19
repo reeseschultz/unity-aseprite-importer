@@ -59,6 +59,8 @@ namespace AsepriteImporter.Editors
                 EditorGUILayout.LabelField("Animation Options", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
 
+                EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "constantFrameDuration"));
+
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "samplesPerSecond"));
 
                 EditorGUILayout.PropertyField(SerializedObject.FindProperty(SettingsPath + "tagDelimiter"));

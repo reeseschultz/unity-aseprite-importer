@@ -203,7 +203,8 @@ namespace AsepriteImporter.Importers
                         transformCurveY[childTransform].AddKey(keyFrameIndex, pos.y);
                     }
 
-                    time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
+                    if (Settings.constantFrameDuration) time = keyFrameIndex / Settings.samplesPerSecond;
+                    else time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
 
                     ++keyFrameIndex;
                 }
@@ -240,6 +241,7 @@ namespace AsepriteImporter.Importers
                 clipSettings.loopTime = (clip.wrapMode == WrapMode.Loop);
 
                 AnimationUtility.SetAnimationClipSettings(clip, clipSettings);
+
                 EditorUtility.SetDirty(clip);
 
                 clips.Add(clip);
