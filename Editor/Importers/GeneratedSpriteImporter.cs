@@ -39,7 +39,7 @@ namespace AsepriteImporter.Importers
         {
             var generatedSprites = false;
 
-            if (GenerateSprites(filePath, fileName))
+            if (!Settings.splitLayers && GenerateSprites(filePath, fileName))
             {
                 var sprites = GetAllSpritesFromAssetFile(filePath);
 
@@ -49,8 +49,7 @@ namespace AsepriteImporter.Importers
 
                 generatedSprites = true;
             }
-
-            if (Settings.splitLayers && GenerateSpritesSeparatedByLayer(out var layerPaths, out var layerNames))
+            else if (Settings.splitLayers && GenerateSpritesSeparatedByLayer(out var layerPaths, out var layerNames))
             {
                 var allLayeredSprites = new List<Sprite>();
 
@@ -359,7 +358,8 @@ namespace AsepriteImporter.Importers
 
             filePath = directoryName + "/" + fileName + ".png";
 
-            WriteTexture(filePath, GenerateAtlas(frames));
+            if (!Settings.splitLayers)
+                WriteTexture(filePath, GenerateAtlas(frames));
         }
 
         public void WriteTexture(string path, Texture2D texture)
