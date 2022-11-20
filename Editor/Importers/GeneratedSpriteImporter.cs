@@ -202,13 +202,13 @@ namespace AsepriteImporter.Importers
                         transformCurveY[childTransform].AddKey(keyFrameIndex, pos.y);
                     }
 
-                    if (Settings.constantFrameDuration) time = keyFrameIndex / Settings.samplesPerSecond;
+                    if (Settings.constantFrameDuration) time = (keyFrameIndex + 1) / Settings.samplesPerSecond;
                     else time += AsepriteFile.Frames[frame].FrameDuration / 1000f;
 
                     ++keyFrameIndex;
                 }
 
-                if (frameTag.Animation == LoopAnimation.Reverse)
+                if (frameTag.Animation == LoopAnimation.Reverse) // TODO: fix by reversing times
                     keyFrames = keyFrames.Reverse().ToArray();
 
                 AnimationUtility.SetObjectReferenceCurve(clip, editorBinding, keyFrames);
